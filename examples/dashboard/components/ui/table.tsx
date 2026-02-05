@@ -1,103 +1,116 @@
 "use client";
 
-import { type ComponentRenderProps } from "@json-render/react";
-import { useData } from "@json-render/react";
-import { getByPath } from "@json-render/core";
+import * as React from "react";
 
-export function Table({ element }: ComponentRenderProps) {
-  const { title, dataPath, columns } = element.props as {
-    title?: string | null;
-    dataPath: string;
-    columns: Array<{ key: string; label: string; format?: string | null }>;
-  };
+import { cn } from "@/lib/utils";
 
-  const { data } = useData();
-  const tableData = getByPath(data, dataPath) as
-    | Array<Record<string, unknown>>
-    | undefined;
-
-  if (!tableData || !Array.isArray(tableData)) {
-    return <div style={{ padding: 20, color: "var(--muted)" }}>No data</div>;
-  }
-
-  const formatCell = (value: unknown, format?: string | null) => {
-    if (value === null || value === undefined) return "-";
-    if (format === "currency" && typeof value === "number") {
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(value);
-    }
-    if (format === "date" && typeof value === "string") {
-      return new Date(value).toLocaleDateString();
-    }
-    if (format === "badge") {
-      return (
-        <span
-          style={{
-            padding: "2px 8px",
-            borderRadius: 12,
-            fontSize: 12,
-            fontWeight: 500,
-            background: "var(--border)",
-            color: "var(--foreground)",
-          }}
-        >
-          {String(value)}
-        </span>
-      );
-    }
-    return String(value);
-  };
-
+function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
-    <div>
-      {title && (
-        <h4 style={{ margin: "0 0 16px", fontSize: 14, fontWeight: 600 }}>
-          {title}
-        </h4>
-      )}
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead>
-          <tr>
-            {columns.map((col) => (
-              <th
-                key={col.key}
-                style={{
-                  textAlign: "left",
-                  padding: "12px 8px",
-                  borderBottom: "1px solid var(--border)",
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: "var(--muted)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                {col.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {tableData.map((row, i) => (
-            <tr key={i}>
-              {columns.map((col) => (
-                <td
-                  key={col.key}
-                  style={{
-                    padding: "12px 8px",
-                    borderBottom: "1px solid var(--border)",
-                    fontSize: 14,
-                  }}
-                >
-                  {formatCell(row[col.key], col.format)}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div
+      data-slot="table-container"
+      className="relative w-full overflow-x-auto"
+    >
+      <table
+        data-slot="table"
+        className={cn("w-full caption-bottom text-sm", className)}
+        {...props}
+      />
     </div>
   );
 }
+
+function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
+  return (
+    <thead
+      data-slot="table-header"
+      className={cn("[&_tr]:border-b", className)}
+      {...props}
+    />
+  );
+}
+
+function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
+  return (
+    <tbody
+      data-slot="table-body"
+      className={cn("[&_tr:last-child]:border-0", className)}
+      {...props}
+    />
+  );
+}
+
+function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
+  return (
+    <tfoot
+      data-slot="table-footer"
+      className={cn(
+        "bg-muted/50 border-t font-medium [&>tr]:last:border-b-0",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
+  return (
+    <tr
+      data-slot="table-row"
+      className={cn(
+        "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+function TableHead({ className, ...props }: React.ComponentProps<"th">) {
+  return (
+    <th
+      data-slot="table-head"
+      className={cn(
+        "text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+function TableCell({ className, ...props }: React.ComponentProps<"td">) {
+  return (
+    <td
+      data-slot="table-cell"
+      className={cn(
+        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+function TableCaption({
+  className,
+  ...props
+}: React.ComponentProps<"caption">) {
+  return (
+    <caption
+      data-slot="table-caption"
+      className={cn("text-muted-foreground mt-4 text-sm", className)}
+      {...props}
+    />
+  );
+}
+
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption,
+};

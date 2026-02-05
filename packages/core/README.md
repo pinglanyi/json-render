@@ -1,184 +1,198 @@
 # @json-render/core
 
-**Predictable. Guardrailed. Fast.** Core library for safe, user-prompted UI generation.
-
-## Features
-
-- **Conditional Visibility**: Show/hide components based on data paths, auth state, or complex logic expressions
-- **Rich Actions**: Actions with typed parameters, confirmation dialogs, and success/error callbacks
-- **Enhanced Validation**: Built-in validation functions with custom catalog functions support
-- **Type-Safe Catalog**: Define component schemas using Zod for full type safety
-- **Framework Agnostic**: Core logic is independent of UI frameworks
+Core library for json-render. Define schemas, create catalogs, generate AI prompts, and stream specs.
 
 ## Installation
 
 ```bash
-npm install @json-render/core
-# or
-pnpm add @json-render/core
+npm install @json-render/core zod
 ```
 
+## Key Concepts
+
+- **Schema**: Defines the structure of specs and catalogs
+- **Catalog**: Maps component/action names to their definitions with Zod props
+- **Spec**: JSON output from AI that conforms to the schema
+- **SpecStream**: JSONL streaming format for progressive spec building
+
 ## Quick Start
+
+### Define a Schema
+
+```typescript
+import { defineSchema } from "@json-render/core";
+
+export const schema = defineSchema((s) => ({
+  spec: s.object({
+    root: s.object({
+      type: s.ref("catalog.components"),
+      props: s.propsOf("catalog.components"),
+      children: s.array(s.self()),
+    }),
+  }),
+  catalog: s.object({
+    components: s.map({
+      props: s.zod(),
+      description: s.string(),
+    }),
+    actions: s.map({
+      description: s.string(),
+    }),
+  }),
+}), {
+  promptTemplate: myPromptTemplate, // Optional custom AI prompt generator
+});
+```
 
 ### Create a Catalog
 
 ```typescript
-import { createCatalog } from '@json-render/core';
-import { z } from 'zod';
+import { defineCatalog } from "@json-render/core";
+import { schema } from "./schema";
+import { z } from "zod";
 
-const catalog = createCatalog({
-  name: 'My Dashboard',
+export const catalog = defineCatalog(schema, {
   components: {
     Card: {
       props: z.object({
         title: z.string(),
-        description: z.string().nullable(),
+        subtitle: z.string().nullable(),
       }),
-      hasChildren: true,
-      description: 'A card container',
+      description: "A card container with title",
     },
     Button: {
       props: z.object({
         label: z.string(),
-        action: ActionSchema,
+        variant: z.enum(["primary", "secondary"]).nullable(),
       }),
-      description: 'A clickable button',
+      description: "A clickable button",
     },
   },
   actions: {
-    submit: { description: 'Submit the form' },
-    export: { 
-      params: z.object({ format: z.enum(['csv', 'pdf']) }),
-      description: 'Export data',
-    },
-  },
-  functions: {
-    customValidation: (value) => typeof value === 'string' && value.length > 0,
+    submit: { description: "Submit the form" },
+    cancel: { description: "Cancel and close" },
   },
 });
 ```
 
-### Visibility Conditions
+### Generate AI Prompts
 
 ```typescript
-import { visibility, evaluateVisibility } from '@json-render/core';
+// Generate system prompt for AI
+const systemPrompt = catalog.prompt();
 
-// Simple path-based visibility
-const element1 = {
-  key: 'error-banner',
-  type: 'Alert',
-  props: { message: 'Error!' },
-  visible: { path: '/form/hasError' },
-};
-
-// Auth-based visibility
-const element2 = {
-  key: 'admin-panel',
-  type: 'Card',
-  props: { title: 'Admin' },
-  visible: { auth: 'signedIn' },
-};
-
-// Complex logic
-const element3 = {
-  key: 'notification',
-  type: 'Alert',
-  props: { message: 'Warning' },
-  visible: {
-    and: [
-      { path: '/settings/notifications' },
-      { not: { path: '/user/dismissed' } },
-      { gt: [{ path: '/items/count' }, 10] },
-    ],
-  },
-};
-
-// Evaluate visibility
-const isVisible = evaluateVisibility(element1.visible, {
-  dataModel: { form: { hasError: true } },
-});
-```
-
-### Rich Actions
-
-```typescript
-import { resolveAction, executeAction } from '@json-render/core';
-
-const buttonAction = {
-  name: 'refund',
-  params: {
-    paymentId: { path: '/selected/id' },
-    amount: 100,
-  },
-  confirm: {
-    title: 'Confirm Refund',
-    message: 'Refund $100 to customer?',
-    variant: 'danger',
-  },
-  onSuccess: { navigate: '/payments' },
-  onError: { set: { '/ui/error': '$error.message' } },
-};
-
-// Resolve dynamic values
-const resolved = resolveAction(buttonAction, dataModel);
-```
-
-### Validation
-
-```typescript
-import { runValidation, check } from '@json-render/core';
-
-const config = {
-  checks: [
-    check.required('Email is required'),
-    check.email('Invalid email'),
-    check.maxLength(100, 'Too long'),
+// With custom rules
+const systemPrompt = catalog.prompt({
+  system: "You are a dashboard builder.",
+  customRules: [
+    "Always include a header",
+    "Use Card components for grouping",
   ],
-  validateOn: 'blur',
-};
-
-const result = runValidation(config, {
-  value: 'user@example.com',
-  dataModel: {},
 });
+```
 
-// result.valid = true
-// result.errors = []
+### Stream AI Responses (SpecStream)
+
+The SpecStream format uses JSONL patches to progressively build specs:
+
+```typescript
+import { createSpecStreamCompiler } from "@json-render/core";
+
+// Create a compiler for your spec type
+const compiler = createSpecStreamCompiler<MySpec>();
+
+// Process streaming chunks from AI
+while (streaming) {
+  const chunk = await reader.read();
+  const { result, newPatches } = compiler.push(chunk);
+  
+  if (newPatches.length > 0) {
+    // Update UI with partial result
+    setSpec(result);
+  }
+}
+
+// Get final compiled result
+const finalSpec = compiler.getResult();
+```
+
+SpecStream format (each line is a JSON patch):
+
+```jsonl
+{"op":"set","path":"/root/type","value":"Card"}
+{"op":"set","path":"/root/props","value":{"title":"Hello"}}
+{"op":"set","path":"/root/children/0","value":{"type":"Button","props":{"label":"Click"}}}
+```
+
+### Low-Level Utilities
+
+```typescript
+import {
+  parseSpecStreamLine,
+  applySpecStreamPatch,
+  compileSpecStream,
+} from "@json-render/core";
+
+// Parse a single line
+const patch = parseSpecStreamLine('{"op":"set","path":"/root","value":{}}');
+// { op: "set", path: "/root", value: {} }
+
+// Apply a patch to an object
+const obj = {};
+applySpecStreamPatch(obj, patch);
+// obj is now { root: {} }
+
+// Compile entire JSONL string at once
+const spec = compileSpecStream<MySpec>(jsonlString);
 ```
 
 ## API Reference
 
-### Visibility
+### Schema
 
-- `evaluateVisibility(condition, context)` - Evaluate a visibility condition
-- `evaluateLogicExpression(expr, context)` - Evaluate a logic expression
-- `visibility.*` - Helper functions for creating visibility conditions
-
-### Actions
-
-- `resolveAction(action, dataModel)` - Resolve dynamic values in an action
-- `executeAction(context)` - Execute an action with callbacks
-- `interpolateString(template, dataModel)` - Interpolate `${path}` in strings
-
-### Validation
-
-- `runValidation(config, context)` - Run validation checks
-- `runValidationCheck(check, context)` - Run a single validation check
-- `builtInValidationFunctions` - Built-in validators (required, email, min, max, etc.)
-- `check.*` - Helper functions for creating validation checks
+| Export | Purpose |
+|--------|---------|
+| `defineSchema(builder, options?)` | Create a schema with spec/catalog structure |
+| `SchemaBuilder` | Builder with `s.object()`, `s.array()`, `s.map()`, etc. |
 
 ### Catalog
 
-- `createCatalog(config)` - Create a catalog with components, actions, and functions
-- `generateCatalogPrompt(catalog)` - Generate an AI prompt describing the catalog
+| Export | Purpose |
+|--------|---------|
+| `defineCatalog(schema, data)` | Create a type-safe catalog from schema |
+| `catalog.prompt(options?)` | Generate AI system prompt |
 
-## Types
+### SpecStream
 
-See `src/types.ts` for full type definitions:
+| Export | Purpose |
+|--------|---------|
+| `createSpecStreamCompiler<T>()` | Create streaming compiler |
+| `parseSpecStreamLine(line)` | Parse single JSONL line |
+| `applySpecStreamPatch(obj, patch)` | Apply patch to object |
+| `compileSpecStream<T>(jsonl)` | Compile entire JSONL string |
 
-- `UIElement` - Base element structure
-- `UITree` - Flat tree structure
-- `VisibilityCondition` - Visibility condition types
-- `LogicExpression` - Logic expression types
-- `Action` - Rich action definition
-- `ValidationConfig` - Validation configuration
+### Types
+
+| Export | Purpose |
+|--------|---------|
+| `Spec` | Base spec type |
+| `Catalog` | Catalog type |
+| `SpecStreamLine` | Single patch operation |
+| `SpecStreamCompiler` | Streaming compiler interface |
+
+## Custom Schemas
+
+json-render supports completely different spec formats for different renderers:
+
+```typescript
+// React: Element tree
+{ root: { type: "Card", props: {...}, children: [...] } }
+
+// Remotion: Timeline
+{ composition: {...}, tracks: [...], clips: [...] }
+
+// Your own: Whatever you need
+{ pages: [...], navigation: {...}, theme: {...} }
+```
+
+Each renderer defines its own schema with `defineSchema()` and its own prompt template.

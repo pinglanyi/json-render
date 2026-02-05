@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { z } from "zod";
-import { createCatalog, generateCatalogPrompt } from "./catalog";
+import {
+  createCatalog,
+  generateCatalogPrompt,
+  generateSystemPrompt,
+} from "./catalog";
+import { defineSchema, defineCatalog } from "./schema";
 
 describe("createCatalog", () => {
   it("creates catalog with components", () => {
@@ -81,21 +86,72 @@ describe("createCatalog", () => {
     expect(catalog.validateElement(invalidElement).success).toBe(false);
   });
 
-  it("validates UI trees", () => {
+  it("validates UI specs", () => {
     const catalog = createCatalog({
       components: {
         text: { props: z.object({ content: z.string() }) },
       },
     });
 
-    const validTree = {
+    const validSpec = {
       root: "1",
       elements: {
         "1": { key: "1", type: "text", props: { content: "Hello" } },
       },
     };
 
-    expect(catalog.validateTree(validTree).success).toBe(true);
+    expect(catalog.validateSpec(validSpec).success).toBe(true);
+  });
+
+  it("validates nested specs with children", () => {
+    const catalog = createCatalog({
+      components: {
+        card: {
+          props: z.object({ title: z.string() }),
+          hasChildren: true,
+        },
+        text: {
+          props: z.object({ content: z.string() }),
+        },
+      },
+    });
+
+    const validSpec = {
+      root: "card-1",
+      elements: {
+        "card-1": {
+          key: "card-1",
+          type: "card",
+          props: { title: "Hello" },
+          children: ["text-1"],
+        },
+        "text-1": {
+          key: "text-1",
+          type: "text",
+          props: { content: "World" },
+          parentKey: "card-1",
+        },
+      },
+    };
+
+    expect(catalog.validateSpec(validSpec).success).toBe(true);
+  });
+
+  it("rejects specs with invalid component types", () => {
+    const catalog = createCatalog({
+      components: {
+        text: { props: z.object({ content: z.string() }) },
+      },
+    });
+
+    const invalidSpec = {
+      root: "1",
+      elements: {
+        "1": { key: "1", type: "nonexistent", props: { content: "Hello" } },
+      },
+    };
+
+    expect(catalog.validateSpec(invalidSpec).success).toBe(false);
   });
 
   it("uses default name when not provided", () => {
@@ -194,5 +250,322 @@ describe("generateCatalogPrompt", () => {
     expect(prompt).toContain("Validation");
     expect(prompt).toContain("required");
     expect(prompt).toContain("email");
+  });
+});
+
+describe("generateSystemPrompt", () => {
+  it("generates a complete system prompt", () => {
+    const catalog = createCatalog({
+      components: {
+        Card: {
+          props: z.object({ title: z.string() }),
+          description: "A card container",
+          hasChildren: true,
+        },
+        Text: {
+          props: z.object({ content: z.string() }),
+          description: "Display text",
+        },
+      },
+    });
+
+    const prompt = generateSystemPrompt(catalog);
+
+    expect(prompt).toContain("You are a UI generator");
+    expect(prompt).toContain("AVAILABLE COMPONENTS");
+    expect(prompt).toContain("Card");
+    expect(prompt).toContain("Text");
+  });
+
+  it("includes prop types in prompt", () => {
+    const catalog = createCatalog({
+      components: {
+        Button: {
+          props: z.object({
+            label: z.string(),
+            variant: z.enum(["primary", "secondary"]).optional(),
+            disabled: z.boolean().optional(),
+          }),
+          description: "Clickable button",
+        },
+      },
+    });
+
+    const prompt = generateSystemPrompt(catalog);
+
+    // Should include component name and description
+    expect(prompt).toContain("Button");
+    expect(prompt).toContain("Clickable button");
+    // Should include AVAILABLE COMPONENTS section
+    expect(prompt).toContain("AVAILABLE COMPONENTS");
+  });
+
+  it("includes actions in prompt", () => {
+    const catalog = createCatalog({
+      components: {
+        Button: { props: z.object({ label: z.string() }) },
+      },
+      actions: {
+        navigate: { description: "Navigate to a URL" },
+        submit: { description: "Submit the form" },
+      },
+    });
+
+    const prompt = generateSystemPrompt(catalog);
+
+    expect(prompt).toContain("AVAILABLE ACTIONS");
+    expect(prompt).toContain("navigate");
+    expect(prompt).toContain("Navigate to a URL");
+    expect(prompt).toContain("submit");
+  });
+
+  it("includes output format rules", () => {
+    const catalog = createCatalog({
+      components: {
+        Text: { props: z.object({ content: z.string() }) },
+      },
+    });
+
+    const prompt = generateSystemPrompt(catalog);
+
+    expect(prompt).toContain("OUTPUT FORMAT");
+    expect(prompt).toContain("RULES");
+    expect(prompt).toContain("/root");
+    expect(prompt).toContain("/elements");
+  });
+
+  it("allows custom system message", () => {
+    const catalog = createCatalog({
+      components: {
+        Text: { props: z.object({ content: z.string() }) },
+      },
+    });
+
+    const prompt = generateSystemPrompt(catalog, {
+      system: "You are a dashboard builder.",
+    });
+
+    expect(prompt).toContain("You are a dashboard builder.");
+    expect(prompt).not.toContain("You are a UI generator");
+  });
+
+  it("appends custom rules", () => {
+    const catalog = createCatalog({
+      components: {
+        Card: { props: z.object({ title: z.string() }) },
+      },
+    });
+
+    const prompt = generateSystemPrompt(catalog, {
+      customRules: [
+        "Always use Card as the root element",
+        "Keep UIs simple and clean",
+      ],
+    });
+
+    expect(prompt).toContain("Always use Card as the root element");
+    expect(prompt).toContain("Keep UIs simple and clean");
+  });
+
+  it("includes custom validation functions when present", () => {
+    const catalog = createCatalog({
+      components: {
+        Input: { props: z.object({ value: z.string() }) },
+      },
+      functions: {
+        phoneNumber: {
+          validate: (v) => /^\d{10}$/.test(String(v)),
+          description: "Validates phone numbers",
+        },
+        zipCode: {
+          validate: (v) => /^\d{5}$/.test(String(v)),
+          description: "Validates zip codes",
+        },
+      },
+    });
+
+    const prompt = generateSystemPrompt(catalog);
+
+    expect(prompt).toContain("CUSTOM VALIDATION FUNCTIONS");
+    expect(prompt).toContain("phoneNumber");
+    expect(prompt).toContain("zipCode");
+  });
+});
+
+describe("defineCatalog (new schema API)", () => {
+  const testSchema = defineSchema((s) => ({
+    spec: s.object({
+      root: s.string(),
+      elements: s.record(
+        s.object({
+          key: s.string(),
+          type: s.ref("catalog.components"),
+          props: s.any(),
+          children: s.array(s.string()),
+        }),
+      ),
+    }),
+    catalog: s.object({
+      components: s.map({
+        props: s.zod(),
+        description: s.string(),
+      }),
+      actions: s.map({
+        description: s.string(),
+      }),
+    }),
+  }));
+
+  it("creates a catalog from a schema", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Text: {
+          props: z.object({ content: z.string() }),
+          description: "Display text",
+        },
+        Button: {
+          props: z.object({ label: z.string() }),
+          description: "Clickable button",
+        },
+      },
+      actions: {
+        click: { description: "Handle click event" },
+      },
+    });
+
+    expect(catalog.componentNames).toEqual(["Text", "Button"]);
+    expect(catalog.actionNames).toEqual(["click"]);
+  });
+
+  it("generates prompt from schema-based catalog", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Card: {
+          props: z.object({ title: z.string() }),
+          description: "A card container",
+        },
+      },
+      actions: {},
+    });
+
+    const prompt = catalog.prompt();
+
+    expect(prompt).toContain("Card");
+    expect(prompt).toContain("A card container");
+    expect(prompt).toContain("AVAILABLE COMPONENTS");
+  });
+
+  it("supports custom rules in prompt", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Text: {
+          props: z.object({ content: z.string() }),
+          description: "Text component",
+        },
+      },
+      actions: {},
+    });
+
+    const prompt = catalog.prompt({
+      customRules: ["Always use semantic HTML", "Keep layouts responsive"],
+    });
+
+    expect(prompt).toContain("Always use semantic HTML");
+    expect(prompt).toContain("Keep layouts responsive");
+  });
+
+  it("validates specs against catalog", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Text: {
+          props: z.object({ content: z.string() }),
+          description: "Text component",
+        },
+      },
+      actions: {},
+    });
+
+    const validSpec = {
+      root: "text-1",
+      elements: {
+        "text-1": {
+          key: "text-1",
+          type: "Text",
+          props: { content: "Hello" },
+          children: [],
+        },
+      },
+    };
+
+    const result = catalog.validate(validSpec);
+    expect(result.success).toBe(true);
+    expect(result.data).toEqual(validSpec);
+  });
+
+  it("returns errors for invalid specs", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Text: {
+          props: z.object({ content: z.string() }),
+          description: "Text component",
+        },
+      },
+      actions: {},
+    });
+
+    const invalidSpec = {
+      root: 123, // Should be string
+      elements: {},
+    };
+
+    const result = catalog.validate(invalidSpec);
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
+  });
+
+  it("generates JSON Schema for structured outputs", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Text: {
+          props: z.object({ content: z.string() }),
+          description: "Text component",
+        },
+      },
+      actions: {},
+    });
+
+    const jsonSchema = catalog.jsonSchema();
+
+    // jsonSchema() returns a JSON Schema representation
+    expect(jsonSchema).toBeDefined();
+    expect(typeof jsonSchema).toBe("object");
+  });
+
+  it("provides Zod schema for custom validation", () => {
+    const catalog = defineCatalog(testSchema, {
+      components: {
+        Text: {
+          props: z.object({ content: z.string() }),
+          description: "Text component",
+        },
+      },
+      actions: {},
+    });
+
+    const zodSchema = catalog.zodSchema();
+
+    const result = zodSchema.safeParse({
+      root: "text-1",
+      elements: {
+        "text-1": {
+          key: "text-1",
+          type: "Text",
+          props: { content: "Hello" },
+          children: [],
+        },
+      },
+    });
+
+    expect(result.success).toBe(true);
   });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { codeToHtml, type BundledLanguage } from "shiki";
+import { codeToHtml } from "shiki";
 
 const vercelDarkTheme = {
   name: "vercel-dark",
@@ -70,110 +70,104 @@ const vercelDarkTheme = {
   ],
 };
 
+const vercelLightTheme = {
+  name: "vercel-light",
+  type: "light" as const,
+  colors: {
+    "editor.background": "transparent",
+    "editor.foreground": "#171717",
+  },
+  settings: [
+    {
+      scope: ["comment", "punctuation.definition.comment"],
+      settings: { foreground: "#6b7280" },
+    },
+    {
+      scope: ["string", "string.quoted", "string.template"],
+      settings: { foreground: "#067a6e" },
+    },
+    {
+      scope: [
+        "constant.numeric",
+        "constant.language.boolean",
+        "constant.language.null",
+      ],
+      settings: { foreground: "#067a6e" },
+    },
+    {
+      scope: ["keyword", "storage.type", "storage.modifier"],
+      settings: { foreground: "#d6409f" },
+    },
+    {
+      scope: ["keyword.operator", "keyword.control"],
+      settings: { foreground: "#d6409f" },
+    },
+    {
+      scope: ["entity.name.function", "support.function", "meta.function-call"],
+      settings: { foreground: "#6e56cf" },
+    },
+    {
+      scope: ["variable", "variable.other", "variable.parameter"],
+      settings: { foreground: "#171717" },
+    },
+    {
+      scope: ["entity.name.tag", "support.class.component", "entity.name.type"],
+      settings: { foreground: "#d6409f" },
+    },
+    {
+      scope: ["punctuation", "meta.brace", "meta.bracket"],
+      settings: { foreground: "#6b7280" },
+    },
+    {
+      scope: [
+        "support.type.property-name",
+        "entity.name.tag.json",
+        "meta.object-literal.key",
+      ],
+      settings: { foreground: "#171717" },
+    },
+    {
+      scope: ["entity.other.attribute-name"],
+      settings: { foreground: "#067a6e" },
+    },
+    {
+      scope: ["support.type.primitive", "entity.name.type.primitive"],
+      settings: { foreground: "#067a6e" },
+    },
+  ],
+};
+
 interface CodeHighlightProps {
   code: string;
-  language?: BundledLanguage;
+  language?: string;
 }
 
-export function CodeHighlight({ code, language = "tsx" }: CodeHighlightProps) {
+export function CodeHighlight({ code, language = "json" }: CodeHighlightProps) {
   const [html, setHtml] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function highlight() {
-      setIsLoading(true);
-      try {
-        const result = await codeToHtml(code, {
-          lang: language,
-          theme: vercelDarkTheme,
-        });
-        if (!cancelled) {
-          setHtml(result);
-        }
-      } catch {
-        // Fallback to plain text on error
-        if (!cancelled) {
-          setHtml(`<pre><code>${escapeHtml(code)}</code></pre>`);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    highlight();
-
-    return () => {
-      cancelled = true;
-    };
+    codeToHtml(code, {
+      lang: language,
+      themes: {
+        light: vercelLightTheme,
+        dark: vercelDarkTheme,
+      },
+      defaultColor: false,
+    }).then(setHtml);
   }, [code, language]);
 
-  if (isLoading) {
+  if (!html) {
     return (
-      <pre
-        style={{
-          margin: 0,
-          padding: 0,
-          overflow: "auto",
-          fontSize: 13,
-          lineHeight: 1.6,
-          fontFamily:
-            'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
-          color: "#EDEDED",
-        }}
-      >
-        <code>{code}</code>
+      <pre className="text-xs font-mono whitespace-pre-wrap break-all">
+        {code}
       </pre>
     );
   }
 
   return (
     <div
-      style={{
-        overflow: "auto",
-        fontSize: 13,
-        lineHeight: 1.6,
-        fontFamily:
-          'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
-      }}
+      className="text-xs [&_pre]:!bg-transparent [&_pre]:!p-0 [&_code]:!bg-transparent [&_.shiki]:!bg-transparent"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-/**
- * Get the appropriate language for a file extension
- */
-export function getLanguageFromPath(path: string): BundledLanguage {
-  const ext = path.split(".").pop()?.toLowerCase();
-  switch (ext) {
-    case "tsx":
-      return "tsx";
-    case "ts":
-      return "typescript";
-    case "jsx":
-      return "jsx";
-    case "js":
-      return "javascript";
-    case "json":
-      return "json";
-    case "css":
-      return "css";
-    case "md":
-      return "markdown";
-    default:
-      return "typescript";
-  }
 }

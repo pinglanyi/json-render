@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
-import { Renderer, useUIStream, JSONUIProvider } from "@json-render/react";
-import type { UITree } from "@json-render/core";
+import { useUIStream } from "@json-render/react";
+import type { Spec } from "@json-render/core";
 import { collectUsedComponents, serializeProps } from "@json-render/codegen";
 import { toast } from "sonner";
 import {
@@ -14,11 +14,7 @@ import { CodeBlock } from "./code-block";
 import { CopyButton } from "./copy-button";
 import { Toaster } from "./ui/sonner";
 import { Header } from "./header";
-import {
-  demoRegistry,
-  fallbackComponent,
-  useInteractiveState,
-} from "./demo/index";
+import { PlaygroundRenderer } from "@/lib/renderer";
 
 type Tab = "json" | "stream";
 type RenderView = "preview" | "code";
@@ -27,7 +23,7 @@ type MobilePane = "chat" | "code" | "preview";
 interface Version {
   id: string;
   prompt: string;
-  tree: UITree | null;
+  tree: Spec | null;
   status: "generating" | "complete" | "error";
 }
 
@@ -54,11 +50,11 @@ export function Playground() {
   // Track the currently generating version ID
   const generatingVersionIdRef = useRef<string | null>(null);
 
-  // Track the current tree for use as previousTree in next generation
-  const currentTreeRef = useRef<UITree | null>(null);
+  // Track the current tree for use as previousSpec in next generation
+  const currentTreeRef = useRef<Spec | null>(null);
 
   const {
-    tree: apiTree,
+    spec: apiSpec,
     isStreaming,
     send,
     clear,
@@ -80,24 +76,22 @@ export function Playground() {
     },
   } as Parameters<typeof useUIStream>[0]);
 
-  useInteractiveState();
-
   // Get the selected version
   const selectedVersion = versions.find((v) => v.id === selectedVersionId);
 
   // Determine which tree to display:
-  // - If streaming and selected version is the generating one, show apiTree
+  // - If streaming and selected version is the generating one, show apiSpec
   // - Otherwise show the selected version's tree
   const isSelectedVersionGenerating =
     selectedVersionId === generatingVersionIdRef.current && isStreaming;
   const hasValidApiTree =
-    apiTree && apiTree.root && Object.keys(apiTree.elements).length > 0;
+    apiSpec && apiSpec.root && Object.keys(apiSpec.elements).length > 0;
 
   const currentTree =
     isSelectedVersionGenerating && hasValidApiTree
-      ? apiTree
+      ? apiSpec
       : (selectedVersion?.tree ??
-        (isSelectedVersionGenerating ? apiTree : null));
+        (isSelectedVersionGenerating ? apiSpec : null));
 
   // Keep the ref updated with the current tree for use in handleSubmit
   if (
@@ -114,11 +108,11 @@ export function Playground() {
   }, [versions]);
 
   useEffect(() => {
-    if (apiTree) {
-      const streamLine = JSON.stringify({ tree: apiTree });
+    if (apiSpec) {
+      const streamLine = JSON.stringify({ tree: apiSpec });
       if (
         !streamLines.includes(streamLine) &&
-        Object.keys(apiTree.elements).length > 0
+        Object.keys(apiSpec.elements).length > 0
       ) {
         setStreamLines((prev) => {
           const lastLine = prev[prev.length - 1];
@@ -129,27 +123,27 @@ export function Playground() {
         });
       }
     }
-  }, [apiTree, streamLines]);
+  }, [apiSpec, streamLines]);
 
   // Update version when streaming completes
   useEffect(() => {
     if (
       !isStreaming &&
-      apiTree &&
-      apiTree.root &&
+      apiSpec &&
+      apiSpec.root &&
       generatingVersionIdRef.current
     ) {
       const completedVersionId = generatingVersionIdRef.current;
       setVersions((prev) =>
         prev.map((v) =>
           v.id === completedVersionId
-            ? { ...v, tree: apiTree, status: "complete" as const }
+            ? { ...v, tree: apiSpec, status: "complete" as const }
             : v,
         ),
       );
       generatingVersionIdRef.current = null;
     }
-  }, [isStreaming, apiTree]);
+  }, [isStreaming, apiSpec]);
 
   const handleSubmit = useCallback(async () => {
     if (!inputValue.trim() || isStreaming) return;
@@ -169,7 +163,7 @@ export function Playground() {
     setStreamLines([]); // Reset stream lines for new generation
 
     // Pass the current tree as context so the API can iterate on it
-    await send(inputValue.trim(), { previousTree: currentTreeRef.current });
+    await send(inputValue.trim(), { previousSpec: currentTreeRef.current });
   }, [inputValue, isStreaming, send]);
 
   const handleKeyDown = useCallback(
@@ -181,18 +175,6 @@ export function Playground() {
     },
     [handleSubmit],
   );
-
-  useEffect(() => {
-    (
-      window as unknown as { __demoAction?: (text: string) => void }
-    ).__demoAction = (text: string) => {
-      toast(text);
-    };
-    return () => {
-      delete (window as unknown as { __demoAction?: (text: string) => void })
-        .__demoAction;
-    };
-  }, []);
 
   const jsonCode = currentTree
     ? JSON.stringify(currentTree, null, 2)
@@ -483,26 +465,7 @@ ${jsx}
         {renderView === "preview" ? (
           currentTree && currentTree.root ? (
             <div className="w-full min-h-full flex items-center justify-center p-6">
-              <JSONUIProvider
-                registry={
-                  demoRegistry as Parameters<
-                    typeof JSONUIProvider
-                  >[0]["registry"]
-                }
-              >
-                <Renderer
-                  tree={currentTree!}
-                  registry={
-                    demoRegistry as Parameters<typeof Renderer>[0]["registry"]
-                  }
-                  loading={isStreaming}
-                  fallback={
-                    fallbackComponent as Parameters<
-                      typeof Renderer
-                    >[0]["fallback"]
-                  }
-                />
-              </JSONUIProvider>
+              <PlaygroundRenderer spec={currentTree} loading={isStreaming} />
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-muted-foreground/50 text-sm">

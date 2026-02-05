@@ -91,9 +91,13 @@ export default function ValidationPage() {
       <p className="text-sm text-muted-foreground mb-4">
         Define custom validators in your catalog:
       </p>
-      <Code lang="typescript">{`const catalog = createCatalog({
+      <Code lang="typescript">{`import { defineCatalog } from '@json-render/core';
+import { schema } from '@json-render/react';
+import { z } from 'zod';
+
+const catalog = defineCatalog(schema, {
   components: { /* ... */ },
-  validationFunctions: {
+  functions: {
     isValidPhone: {
       description: 'Validates phone number format',
     },
@@ -131,15 +135,15 @@ function App() {
       <h2 className="text-xl font-semibold mt-12 mb-4">Using in Components</h2>
       <Code lang="tsx">{`import { useFieldValidation } from '@json-render/react';
 
-function TextField({ element }) {
+function TextField({ props }) {
   const { value, setValue, errors, validate } = useFieldValidation(
-    element.props.valuePath,
-    element.props.checks
+    props.valuePath,
+    props.checks
   );
 
   return (
     <div>
-      <label>{element.props.label}</label>
+      <label>{props.label}</label>
       <input
         value={value || ''}
         onChange={(e) => setValue(e.target.value)}

@@ -85,9 +85,9 @@ import {
   serializeProps,
   type GeneratedFile 
 } from '@json-render/codegen';
-import type { UITree } from '@json-render/core';
+import type { Spec } from '@json-render/core';
 
-export function generateNextJSProject(tree: UITree): GeneratedFile[] {
+export function generateNextJSProject(spec: Spec): GeneratedFile[] {
   const files: GeneratedFile[] = [];
   const components = collectUsedComponents(tree);
   

@@ -1,5 +1,6 @@
 import { codeToHtml } from "shiki";
 import { CopyButton } from "./copy-button";
+import { ExpandableCode } from "./expandable-code";
 
 const vercelDarkTheme = {
   name: "vercel-dark",
@@ -158,10 +159,12 @@ export async function Code({ children, lang = "typescript" }: CodeProps) {
           className="opacity-0 group-hover:opacity-100 text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-[#0a0a0a]"
         />
       </div>
-      <div
-        className="overflow-x-auto [&_pre]:bg-transparent! [&_pre]:m-0! [&_pre]:p-4! [&_code]:bg-transparent! [&_.shiki]:bg-transparent!"
-        dangerouslySetInnerHTML={{ __html: html }}
-      />
+      <ExpandableCode>
+        <div
+          className="overflow-x-auto [&_pre]:bg-transparent! [&_pre]:m-0! [&_pre]:p-4! [&_code]:bg-transparent! [&_.shiki]:bg-transparent!"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      </ExpandableCode>
     </div>
   );
 }

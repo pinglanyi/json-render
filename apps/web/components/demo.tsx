@@ -7,23 +7,19 @@ import React, {
   useRef,
   useMemo,
 } from "react";
-import { Renderer, useUIStream, JSONUIProvider } from "@json-render/react";
-import type { UITree } from "@json-render/core";
+import { useUIStream } from "@json-render/react";
+import type { Spec } from "@json-render/core";
 import { collectUsedComponents, serializeProps } from "@json-render/codegen";
 import { toast } from "sonner";
 import { CodeBlock } from "./code-block";
 import { CopyButton } from "./copy-button";
 import { Toaster } from "./ui/sonner";
-import {
-  demoRegistry,
-  fallbackComponent,
-  useInteractiveState,
-} from "./demo/index";
+import { PlaygroundRenderer } from "@/lib/renderer";
 
 const SIMULATION_PROMPT = "Create a contact form with name, email, and message";
 
 interface SimulationStage {
-  tree: UITree;
+  tree: Spec;
   stream: string;
 }
 
@@ -187,7 +183,7 @@ export function Demo({
   const [streamLines, setStreamLines] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("json");
   const [renderView, setRenderView] = useState<RenderView>("dynamic");
-  const [simulationTree, setSimulationTree] = useState<UITree | null>(null);
+  const [simulationTree, setSimulationTree] = useState<Spec | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [selectedExportFile, setSelectedExportFile] = useState<string | null>(
@@ -213,7 +209,7 @@ export function Demo({
 
   // Use the library's useUIStream hook for real API calls
   const {
-    tree: apiTree,
+    spec: apiSpec,
     isStreaming,
     send,
     clear,
@@ -225,9 +221,6 @@ export function Demo({
     },
   } as Parameters<typeof useUIStream>[0]);
 
-  // Initialize interactive state for Select components
-  useInteractiveState();
-
   const currentSimulationStage =
     stageIndex >= 0 ? SIMULATION_STAGES[stageIndex] : null;
 
@@ -235,7 +228,7 @@ export function Demo({
   const currentTree =
     mode === "simulation"
       ? currentSimulationStage?.tree || simulationTree
-      : apiTree || simulationTree;
+      : apiSpec || simulationTree;
 
   const stopGeneration = useCallback(() => {
     if (mode === "simulation") {
@@ -294,12 +287,12 @@ export function Demo({
 
   // Track stream lines from real API
   useEffect(() => {
-    if (mode === "interactive" && apiTree) {
+    if (mode === "interactive" && apiSpec) {
       // Convert tree to stream line for display
-      const streamLine = JSON.stringify({ tree: apiTree });
+      const streamLine = JSON.stringify({ tree: apiSpec });
       if (
         !streamLines.includes(streamLine) &&
-        Object.keys(apiTree.elements).length > 0
+        Object.keys(apiSpec.elements).length > 0
       ) {
         setStreamLines((prev) => {
           const lastLine = prev[prev.length - 1];
@@ -310,26 +303,13 @@ export function Demo({
         });
       }
     }
-  }, [mode, apiTree, streamLines]);
+  }, [mode, apiSpec, streamLines]);
 
   const handleSubmit = useCallback(async () => {
     if (!userPrompt.trim() || isStreaming) return;
     setStreamLines([]);
     await send(userPrompt);
   }, [userPrompt, isStreaming, send]);
-
-  // Expose action handler for registry components - shows toast with text
-  useEffect(() => {
-    (
-      window as unknown as { __demoAction?: (text: string) => void }
-    ).__demoAction = (text: string) => {
-      toast(text);
-    };
-    return () => {
-      delete (window as unknown as { __demoAction?: (text: string) => void })
-        .__demoAction;
-    };
-  }, []);
 
   const jsonCode = currentTree
     ? JSON.stringify(currentTree, null, 2)
@@ -1044,9 +1024,16 @@ Open [http://localhost:3000](http://localhost:3000) to view.
             ))}
           </div>
         ) : (
-          <div className="mt-2 text-xs text-muted-foreground text-center">
-            Try: &quot;Create a login form&quot; or &quot;Build a feedback form
-            with rating&quot;
+          <div className="mt-2 flex flex-wrap gap-1.5 justify-center">
+            {EXAMPLE_PROMPTS.slice(0, 2).map((prompt) => (
+              <button
+                key={prompt}
+                onClick={() => handleExampleClick(prompt)}
+                className="text-xs px-2 py-1 rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-foreground/50 transition-colors"
+              >
+                {prompt}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -1190,28 +1177,10 @@ Open [http://localhost:3000](http://localhost:3000) to view.
               <div className="overflow-auto">
                 {currentTree && currentTree.root ? (
                   <div className="animate-in fade-in duration-200 w-full min-h-full flex items-center justify-center p-3 py-4">
-                    <JSONUIProvider
-                      registry={
-                        demoRegistry as Parameters<
-                          typeof JSONUIProvider
-                        >[0]["registry"]
-                      }
-                    >
-                      <Renderer
-                        tree={currentTree}
-                        registry={
-                          demoRegistry as Parameters<
-                            typeof Renderer
-                          >[0]["registry"]
-                        }
-                        loading={isStreaming || isStreamingSimulation}
-                        fallback={
-                          fallbackComponent as Parameters<
-                            typeof Renderer
-                          >[0]["fallback"]
-                        }
-                      />
-                    </JSONUIProvider>
+                    <PlaygroundRenderer
+                      spec={currentTree}
+                      loading={isStreaming || isStreamingSimulation}
+                    />
                   </div>
                 ) : (
                   <div className="h-full flex items-center justify-center text-muted-foreground/50 text-sm">
@@ -1262,26 +1231,10 @@ Open [http://localhost:3000](http://localhost:3000) to view.
           <div className="flex-1 overflow-auto p-6">
             {currentTree && currentTree.root ? (
               <div className="w-full min-h-full flex items-center justify-center">
-                <JSONUIProvider
-                  registry={
-                    demoRegistry as Parameters<
-                      typeof JSONUIProvider
-                    >[0]["registry"]
-                  }
-                >
-                  <Renderer
-                    tree={currentTree}
-                    registry={
-                      demoRegistry as Parameters<typeof Renderer>[0]["registry"]
-                    }
-                    loading={isStreaming || isStreamingSimulation}
-                    fallback={
-                      fallbackComponent as Parameters<
-                        typeof Renderer
-                      >[0]["fallback"]
-                    }
-                  />
-                </JSONUIProvider>
+                <PlaygroundRenderer
+                  spec={currentTree}
+                  loading={isStreaming || isStreamingSimulation}
+                />
               </div>
             ) : (
               <div className="h-full flex items-center justify-center text-muted-foreground/50 text-sm">

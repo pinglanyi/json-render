@@ -1,4 +1,4 @@
-import type { UITree } from "@json-render/core";
+import type { Spec } from "@json-render/core";
 
 /**
  * Represents a generated file
@@ -14,6 +14,6 @@ export interface GeneratedFile {
  * Interface for code generators
  */
 export interface CodeGenerator {
-  /** Generate files from a UI tree */
-  generate(tree: UITree): GeneratedFile[];
+  /** Generate files from a UI spec */
+  generate(spec: Spec): GeneratedFile[];
 }

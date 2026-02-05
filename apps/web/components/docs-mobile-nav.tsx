@@ -36,6 +36,7 @@ const navigation = [
     items: [
       { title: "AI SDK Integration", href: "/docs/ai-sdk" },
       { title: "Streaming", href: "/docs/streaming" },
+      { title: "Code Export", href: "/docs/code-export" },
     ],
   },
   {
@@ -43,6 +44,7 @@ const navigation = [
     items: [
       { title: "@json-render/core", href: "/docs/api/core" },
       { title: "@json-render/react", href: "/docs/api/react" },
+      { title: "@json-render/codegen", href: "/docs/api/codegen" },
     ],
   },
 ];
@@ -83,7 +85,7 @@ export function DocsMobileNav() {
                       onClick={() => setOpen(false)}
                       className={`text-sm block py-2 transition-colors ${
                         pathname === item.href
-                          ? "text-foreground font-medium"
+                          ? "text-primary font-medium"
                           : "text-muted-foreground hover:text-foreground"
                       }`}
                     >

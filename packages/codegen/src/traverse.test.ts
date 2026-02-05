@@ -1,15 +1,15 @@
 import { describe, it, expect } from "vitest";
 import {
-  traverseTree,
+  traverseSpec,
   collectUsedComponents,
   collectDataPaths,
   collectActions,
 } from "./traverse";
-import type { UITree } from "@json-render/core";
+import type { Spec } from "@json-render/core";
 
-describe("traverseTree", () => {
+describe("traverseSpec", () => {
   it("visits all elements depth-first", () => {
-    const tree: UITree = {
+    const spec: Spec = {
       root: "root",
       elements: {
         root: {
@@ -32,16 +32,16 @@ describe("traverseTree", () => {
     };
 
     const visited: string[] = [];
-    traverseTree(tree, (element) => {
+    traverseSpec(spec, (element) => {
       visited.push(element.key);
     });
 
     expect(visited).toEqual(["root", "child1", "child2"]);
   });
 
-  it("handles empty tree", () => {
+  it("handles empty spec", () => {
     const visited: string[] = [];
-    traverseTree(null as unknown as UITree, (element) => {
+    traverseSpec(null as unknown as Spec, (element) => {
       visited.push(element.key);
     });
     expect(visited).toEqual([]);
@@ -50,7 +50,7 @@ describe("traverseTree", () => {
 
 describe("collectUsedComponents", () => {
   it("collects unique component types", () => {
-    const tree: UITree = {
+    const spec: Spec = {
       root: "root",
       elements: {
         root: {
@@ -72,14 +72,14 @@ describe("collectUsedComponents", () => {
       },
     };
 
-    const components = collectUsedComponents(tree);
+    const components = collectUsedComponents(spec);
     expect(components).toEqual(new Set(["Card", "Text"]));
   });
 });
 
 describe("collectDataPaths", () => {
   it("collects paths from valuePath props", () => {
-    const tree: UITree = {
+    const spec: Spec = {
       root: "root",
       elements: {
         root: {
@@ -90,12 +90,12 @@ describe("collectDataPaths", () => {
       },
     };
 
-    const paths = collectDataPaths(tree);
+    const paths = collectDataPaths(spec);
     expect(paths).toEqual(new Set(["analytics/revenue"]));
   });
 
   it("collects paths from dynamic value objects", () => {
-    const tree: UITree = {
+    const spec: Spec = {
       root: "root",
       elements: {
         root: {
@@ -106,14 +106,14 @@ describe("collectDataPaths", () => {
       },
     };
 
-    const paths = collectDataPaths(tree);
+    const paths = collectDataPaths(spec);
     expect(paths).toEqual(new Set(["user/name"]));
   });
 });
 
 describe("collectActions", () => {
   it("collects action names from props", () => {
-    const tree: UITree = {
+    const spec: Spec = {
       root: "root",
       elements: {
         root: {
@@ -124,7 +124,7 @@ describe("collectActions", () => {
       },
     };
 
-    const actions = collectActions(tree);
+    const actions = collectActions(spec);
     expect(actions).toEqual(new Set(["submit_form"]));
   });
 });

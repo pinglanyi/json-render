@@ -43,33 +43,51 @@ interface AuthState {
 
 type ValidatorFn = (value: unknown, args?: object) => boolean | Promise<boolean>;`}</Code>
 
+      <h2 className="text-xl font-semibold mt-12 mb-4">createRenderer</h2>
+      <p className="text-sm text-muted-foreground mb-4">
+        Factory function to create a pre-configured renderer component.
+      </p>
+      <Code lang="tsx">{`import { createRenderer } from '@json-render/react';
+
+const MyRenderer = createRenderer({
+  registry: componentRegistry,
+  data?: initialData,
+  actionHandlers?: actionHandlerMap,
+  auth?: authState,
+});
+
+// Usage
+<MyRenderer spec={spec} loading={isStreaming} />`}</Code>
+
       <h2 className="text-xl font-semibold mt-12 mb-4">Components</h2>
 
       <h3 className="text-lg font-semibold mt-8 mb-4">Renderer</h3>
       <Code lang="tsx">{`<Renderer
-  tree={UITree}
-  registry={ComponentRegistry}
+  spec={Spec}           // The UI spec to render
+  registry={Registry}   // Component registry
+  loading={boolean}     // Optional loading state
 />
 
-type ComponentRegistry = Record<string, React.ComponentType<ComponentProps>>;
+type Registry = Record<string, React.ComponentType<ComponentProps>>;
 
-interface ComponentProps {
-  element: UIElement;
-  children?: React.ReactNode;
-  onAction: (name: string, params: object) => void;
+interface ComponentProps<T = Record<string, unknown>> {
+  props: T;                    // Component props from spec
+  children?: React.ReactNode;  // Rendered children (for slot components)
 }`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Hooks</h2>
 
       <h3 className="text-lg font-semibold mt-8 mb-4">useUIStream</h3>
       <Code lang="typescript">{`const {
-  tree,       // UITree - current UI state
-  isLoading,  // boolean - true while streaming
-  error,      // Error | null
-  generate,   // (prompt: string) => void
-  abort,      // () => void
+  spec,         // Spec - current UI state
+  isStreaming,  // boolean - true while streaming
+  error,        // Error | null
+  send,         // (prompt: string) => void
+  abort,        // () => void
 } = useUIStream({
-  endpoint: string,
+  api: string,                       // API endpoint URL
+  onChunk?: (chunk: string) => void, // Called for each chunk
+  onFinish?: (spec: Spec) => void,   // Called when streaming completes
 });`}</Code>
 
       <h3 className="text-lg font-semibold mt-8 mb-4">useData</h3>

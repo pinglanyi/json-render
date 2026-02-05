@@ -9,11 +9,14 @@ export default function InstallationPage() {
     <article>
       <h1 className="text-3xl font-bold mb-4">Installation</h1>
       <p className="text-muted-foreground mb-8">
-        Install the core and React packages to get started.
+        Install the core package plus your renderer of choice.
       </p>
 
-      <h2 className="text-xl font-semibold mt-12 mb-4">Install packages</h2>
+      <h2 className="text-xl font-semibold mt-12 mb-4">For React UI</h2>
       <PackageInstall packages="@json-render/core @json-render/react" />
+
+      <h2 className="text-xl font-semibold mt-12 mb-4">For Remotion Video</h2>
+      <PackageInstall packages="@json-render/core @json-render/remotion remotion @remotion/player" />
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Peer Dependencies</h2>
       <p className="text-sm text-muted-foreground mb-4">

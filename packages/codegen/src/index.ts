@@ -1,5 +1,5 @@
 export {
-  traverseTree,
+  traverseSpec,
   collectUsedComponents,
   collectDataPaths,
   collectActions,

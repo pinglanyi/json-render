@@ -37,7 +37,7 @@ export default function CodeExportPage() {
         Framework-agnostic utilities for building code generators:
       </p>
       <Code lang="typescript">{`import {
-  traverseTree,          // Walk the UI tree
+  traverseSpec,          // Walk the UI spec
   collectUsedComponents, // Get all component types used
   collectDataPaths,      // Get all data binding paths
   collectActions,        // Get all action names
@@ -53,8 +53,8 @@ export default function CodeExportPage() {
       <Code lang="typescript">{`// lib/codegen/generator.ts
 import { collectUsedComponents, serializeProps } from '@json-render/codegen';
 
-export function generateNextJSProject(tree: UITree): GeneratedFile[] {
-  const components = collectUsedComponents(tree);
+export function generateNextJSProject(spec: Spec): GeneratedFile[] {
+  const components = collectUsedComponents(spec);
   
   return [
     { path: 'package.json', content: '...' },
@@ -125,17 +125,17 @@ export function Metric({ label, valuePath, data }: MetricProps) {
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Using the Utilities</h2>
 
-      <h3 className="text-lg font-semibold mt-8 mb-4">traverseTree</h3>
-      <Code lang="typescript">{`import { traverseTree } from '@json-render/codegen';
+      <h3 className="text-lg font-semibold mt-8 mb-4">traverseSpec</h3>
+      <Code lang="typescript">{`import { traverseSpec } from '@json-render/codegen';
 
-traverseTree(tree, (element, depth, parent) => {
+traverseSpec(spec, (element, depth, parent) => {
   console.log(' '.repeat(depth * 2) + element.type);
 });`}</Code>
 
       <h3 className="text-lg font-semibold mt-8 mb-4">collectUsedComponents</h3>
       <Code lang="typescript">{`import { collectUsedComponents } from '@json-render/codegen';
 
-const components = collectUsedComponents(tree);
+const components = collectUsedComponents(spec);
 // Set { 'Card', 'Metric', 'Chart', 'Table' }
 
 // Generate only the needed component files

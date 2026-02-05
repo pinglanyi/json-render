@@ -124,8 +124,9 @@ function App() {
       <h2 className="text-xl font-semibold mt-12 mb-4">Using in Components</h2>
       <Code lang="tsx">{`import { useIsVisible } from '@json-render/react';
 
-function ConditionalContent({ element, children }) {
-  const isVisible = useIsVisible(element.visible);
+// The Renderer handles visibility automatically, but you can also use the hook
+function ConditionalContent({ condition, children }) {
+  const isVisible = useIsVisible(condition);
   
   if (!isVisible) return null;
   return <div>{children}</div>;

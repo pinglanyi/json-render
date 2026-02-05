@@ -3,14 +3,21 @@
 import React, { type ComponentType, type ReactNode, useMemo } from "react";
 import type {
   UIElement,
-  UITree,
+  Spec,
   Action,
-  Catalog,
+  Catalog as NewCatalog,
+  SchemaDefinition,
+  LegacyCatalog,
   ComponentDefinition,
 } from "@json-render/core";
 import { useIsVisible } from "./contexts/visibility";
 import { useActions } from "./contexts/actions";
 import { useData } from "./contexts/data";
+import { DataProvider } from "./contexts/data";
+import { VisibilityProvider } from "./contexts/visibility";
+import { ActionProvider } from "./contexts/actions";
+import { ValidationProvider } from "./contexts/validation";
+import { ConfirmDialog } from "./contexts/actions";
 
 /**
  * Props passed to component renderers
@@ -42,11 +49,11 @@ export type ComponentRegistry = Record<string, ComponentRenderer<any>>;
  * Props for the Renderer component
  */
 export interface RendererProps {
-  /** The UI tree to render */
-  tree: UITree | null;
+  /** The UI spec to render */
+  spec: Spec | null;
   /** Component registry */
   registry: ComponentRegistry;
-  /** Whether the tree is currently loading/streaming */
+  /** Whether the spec is currently loading/streaming */
   loading?: boolean;
   /** Fallback component for unknown types */
   fallback?: ComponentRenderer;
@@ -57,13 +64,13 @@ export interface RendererProps {
  */
 function ElementRenderer({
   element,
-  tree,
+  spec,
   registry,
   loading,
   fallback,
 }: {
   element: UIElement;
-  tree: UITree;
+  spec: Spec;
   registry: ComponentRegistry;
   loading?: boolean;
   fallback?: ComponentRenderer;
@@ -86,7 +93,7 @@ function ElementRenderer({
 
   // Render children
   const children = element.children?.map((childKey) => {
-    const childElement = tree.elements[childKey];
+    const childElement = spec.elements[childKey];
     if (!childElement) {
       return null;
     }
@@ -94,7 +101,7 @@ function ElementRenderer({
       <ElementRenderer
         key={childKey}
         element={childElement}
-        tree={tree}
+        spec={spec}
         registry={registry}
         loading={loading}
         fallback={fallback}
@@ -112,12 +119,12 @@ function ElementRenderer({
 /**
  * Main renderer component
  */
-export function Renderer({ tree, registry, loading, fallback }: RendererProps) {
-  if (!tree || !tree.root) {
+export function Renderer({ spec, registry, loading, fallback }: RendererProps) {
+  if (!spec || !spec.root) {
     return null;
   }
 
-  const rootElement = tree.elements[tree.root];
+  const rootElement = spec.elements[spec.root];
   if (!rootElement) {
     return null;
   }
@@ -125,7 +132,7 @@ export function Renderer({ tree, registry, loading, fallback }: RendererProps) {
   return (
     <ElementRenderer
       element={rootElement}
-      tree={tree}
+      spec={spec}
       registry={registry}
       loading={loading}
       fallback={fallback}
@@ -159,13 +166,6 @@ export interface JSONUIProviderProps {
   onDataChange?: (path: string, value: unknown) => void;
   children: ReactNode;
 }
-
-// Import the providers
-import { DataProvider } from "./contexts/data";
-import { VisibilityProvider } from "./contexts/visibility";
-import { ActionProvider } from "./contexts/actions";
-import { ValidationProvider } from "./contexts/validation";
-import { ConfirmDialog } from "./contexts/actions";
 
 /**
  * Combined provider for all JSONUI contexts
@@ -218,15 +218,128 @@ function ConfirmationDialogManager() {
 }
 
 /**
- * Helper to create a renderer component from a catalog
+ * Legacy helper to create a renderer component from a catalog
+ * @deprecated Use createRenderer with the new catalog API instead
  */
 export function createRendererFromCatalog<
-  C extends Catalog<Record<string, ComponentDefinition>>,
+  C extends LegacyCatalog<Record<string, ComponentDefinition>>,
 >(
   _catalog: C,
   registry: ComponentRegistry,
 ): ComponentType<Omit<RendererProps, "registry">> {
   return function CatalogRenderer(props: Omit<RendererProps, "registry">) {
     return <Renderer {...props} registry={registry} />;
+  };
+}
+
+// ============================================================================
+// NEW API
+// ============================================================================
+
+/**
+ * Props for renderers created with createRenderer
+ */
+export interface CreateRendererProps {
+  /** The spec to render (AI-generated JSON) */
+  spec: Spec | null;
+  /** Data context for dynamic values */
+  data?: Record<string, unknown>;
+  /** Action handler */
+  onAction?: (actionName: string, params?: Record<string, unknown>) => void;
+  /** Callback when data changes (e.g., from form inputs) */
+  onDataChange?: (path: string, value: unknown) => void;
+  /** Whether the spec is currently loading/streaming */
+  loading?: boolean;
+  /** Auth state for visibility conditions */
+  authState?: { isSignedIn: boolean; user?: Record<string, unknown> };
+  /** Fallback component for unknown types */
+  fallback?: ComponentRenderer;
+}
+
+/**
+ * Component map type - maps component names to React components
+ */
+export type ComponentMap<
+  TComponents extends Record<string, { props: unknown }>,
+> = {
+  [K in keyof TComponents]: ComponentType<
+    ComponentRenderProps<
+      TComponents[K]["props"] extends { _output: infer O }
+        ? O
+        : Record<string, unknown>
+    >
+  >;
+};
+
+/**
+ * Create a renderer from a catalog
+ *
+ * @example
+ * ```typescript
+ * const DashboardRenderer = createRenderer(dashboardCatalog, {
+ *   Card: ({ element, children }) => <div className="card">{children}</div>,
+ *   Metric: ({ element }) => <span>{element.props.value}</span>,
+ * });
+ *
+ * // Usage
+ * <DashboardRenderer spec={aiGeneratedSpec} data={data} />
+ * ```
+ */
+export function createRenderer<
+  TDef extends SchemaDefinition,
+  TCatalog extends { components: Record<string, { props: unknown }> },
+>(
+  catalog: NewCatalog<TDef, TCatalog>,
+  components: ComponentMap<TCatalog["components"]>,
+): ComponentType<CreateRendererProps> {
+  // Convert component map to registry
+  const registry: ComponentRegistry =
+    components as unknown as ComponentRegistry;
+
+  // Return the renderer component
+  return function CatalogRenderer({
+    spec,
+    data,
+    onAction,
+    onDataChange,
+    loading,
+    authState,
+    fallback,
+  }: CreateRendererProps) {
+    // Wrap onAction to match internal API
+    const actionHandlers = onAction
+      ? {
+          __default__: (params: Record<string, unknown>) => {
+            const actionName = params.__actionName__ as string;
+            const actionParams = params.__actionParams__ as Record<
+              string,
+              unknown
+            >;
+            return onAction(actionName, actionParams);
+          },
+        }
+      : undefined;
+
+    return (
+      <DataProvider
+        initialData={data}
+        authState={authState}
+        onDataChange={onDataChange}
+      >
+        <VisibilityProvider>
+          <ActionProvider handlers={actionHandlers}>
+            <ValidationProvider>
+              <Renderer
+                spec={spec}
+                registry={registry}
+                loading={loading}
+                fallback={fallback}
+              />
+              <ConfirmationDialogManager />
+            </ValidationProvider>
+          </ActionProvider>
+        </VisibilityProvider>
+      </DataProvider>
+    );
   };
 }

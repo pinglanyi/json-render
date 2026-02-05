@@ -14,28 +14,28 @@ export default function CodegenApiPage() {
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Tree Traversal</h2>
 
-      <h3 className="text-lg font-semibold mt-8 mb-4">traverseTree</h3>
+      <h3 className="text-lg font-semibold mt-8 mb-4">traverseSpec</h3>
       <p className="text-sm text-muted-foreground mb-4">
-        Walk the UI tree depth-first.
+        Walk the UI spec depth-first.
       </p>
-      <Code lang="typescript">{`function traverseTree(
-  tree: UITree,
-  visitor: TreeVisitor,
+      <Code lang="typescript">{`function traverseSpec(
+  spec: Spec,
+  visitor: SpecVisitor,
   startKey?: string
 ): void
 
-interface TreeVisitor {
+interface SpecVisitor {
   (element: UIElement, depth: number, parent: UIElement | null): void;
 }`}</Code>
 
       <h3 className="text-lg font-semibold mt-8 mb-4">collectUsedComponents</h3>
       <p className="text-sm text-muted-foreground mb-4">
-        Get all unique component types used in a tree.
+        Get all unique component types used in a spec.
       </p>
-      <Code lang="typescript">{`function collectUsedComponents(tree: UITree): Set<string>
+      <Code lang="typescript">{`function collectUsedComponents(spec: Spec): Set<string>
 
 // Example
-const components = collectUsedComponents(tree);
+const components = collectUsedComponents(spec);
 // Set { 'Card', 'Metric', 'Chart' }`}</Code>
 
       <h3 className="text-lg font-semibold mt-8 mb-4">collectDataPaths</h3>
@@ -43,20 +43,20 @@ const components = collectUsedComponents(tree);
         Get all data paths referenced in props (valuePath, dataPath, bindPath,
         etc.).
       </p>
-      <Code lang="typescript">{`function collectDataPaths(tree: UITree): Set<string>
+      <Code lang="typescript">{`function collectDataPaths(spec: Spec): Set<string>
 
 // Example
-const paths = collectDataPaths(tree);
+const paths = collectDataPaths(spec);
 // Set { 'analytics/revenue', 'analytics/customers' }`}</Code>
 
       <h3 className="text-lg font-semibold mt-8 mb-4">collectActions</h3>
       <p className="text-sm text-muted-foreground mb-4">
-        Get all action names used in the tree.
+        Get all action names used in the spec.
       </p>
-      <Code lang="typescript">{`function collectActions(tree: UITree): Set<string>
+      <Code lang="typescript">{`function collectActions(spec: Spec): Set<string>
 
 // Example
-const actions = collectActions(tree);
+const actions = collectActions(spec);
 // Set { 'submit_form', 'refresh_data' }`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Serialization</h2>
@@ -114,8 +114,8 @@ serializeProps({ title: 'Dashboard', columns: 3, disabled: true })
 
       <h3 className="text-lg font-semibold mt-8 mb-4">CodeGenerator</h3>
       <Code lang="typescript">{`interface CodeGenerator {
-  /** Generate files from a UI tree */
-  generate(tree: UITree): GeneratedFile[];
+  /** Generate files from a UI spec */
+  generate(spec: Spec): GeneratedFile[];
 }`}</Code>
 
       <h3 className="text-lg font-semibold mt-8 mb-4">SerializeOptions</h3>

@@ -36,8 +36,39 @@ export {
   type FieldValidationState,
 } from "./contexts/validation";
 
+// Schema (React's spec format)
+export {
+  schema,
+  type ReactSchema,
+  type ReactSpec,
+  // Backward compatibility
+  elementTreeSchema,
+  type ElementTreeSchema,
+  type ElementTreeSpec,
+} from "./schema";
+
+// Core types (re-exported for convenience)
+export type { Spec } from "@json-render/core";
+
+// Catalog-aware types for React
+export type {
+  SetData,
+  DataModel,
+  ActionTrigger,
+  ComponentContext,
+  ComponentFn,
+  Components,
+  ActionFn,
+  Actions,
+} from "./catalog-types";
+
 // Renderer
 export {
+  // New API
+  createRenderer,
+  type CreateRendererProps,
+  type ComponentMap,
+  // Legacy API
   Renderer,
   JSONUIProvider,
   createRendererFromCatalog,

@@ -20,32 +20,34 @@ export default function CatalogPage() {
       <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 mb-4">
         <li>
           <strong className="text-foreground">Components</strong> — UI elements
-          AI can create
+          AI can create (with props and optional slots)
         </li>
         <li>
           <strong className="text-foreground">Actions</strong> — Operations AI
           can trigger
         </li>
         <li>
-          <strong className="text-foreground">Validation Functions</strong> —
-          Custom validators for form inputs
+          <strong className="text-foreground">Functions</strong> — Custom
+          validation or transformation functions
         </li>
       </ul>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Creating a Catalog</h2>
-      <Code lang="typescript">{`import { createCatalog } from '@json-render/core';
+      <Code lang="typescript">{`import { defineCatalog } from '@json-render/core';
+import { schema } from '@json-render/react';
 import { z } from 'zod';
 
-const catalog = createCatalog({
+const catalog = defineCatalog(schema, {
   components: {
     // Define each component with its props schema
     Card: {
       props: z.object({
         title: z.string(),
         description: z.string().nullable(),
-        padding: z.enum(['sm', 'md', 'lg']).default('md'),
+        padding: z.enum(['sm', 'md', 'lg']).nullable(),
       }),
-      hasChildren: true, // Can contain other components
+      slots: ["default"], // Can contain other components
+      description: "Container card for grouping content",
     },
     
     Metric: {
@@ -54,6 +56,7 @@ const catalog = createCatalog({
         valuePath: z.string(), // JSON Pointer to data
         format: z.enum(['currency', 'percent', 'number']),
       }),
+      description: "Display a single metric value",
     },
   },
   
@@ -69,15 +72,7 @@ const catalog = createCatalog({
       params: z.object({
         format: z.enum(['csv', 'pdf', 'json']),
       }),
-    },
-  },
-  
-  validationFunctions: {
-    isValidEmail: {
-      description: 'Validates email format',
-    },
-    isPhoneNumber: {
-      description: 'Validates phone number',
+      description: 'Export data in various formats',
     },
   },
 });`}</Code>
@@ -87,21 +82,35 @@ const catalog = createCatalog({
         Each component in the catalog has:
       </p>
       <Code lang="typescript">{`{
-  props: z.object({...}),  // Zod schema for props
-  hasChildren?: boolean,    // Can it have children?
-  description?: string,     // Help AI understand when to use it
+  props: z.object({...}),  // Zod schema for props (use .nullable() for optional)
+  slots?: string[],        // Named slots for children (e.g., ["default"])
+  description?: string,    // Help AI understand when to use it
 }`}</Code>
+      <p className="text-sm text-muted-foreground mt-4 mb-4">
+        Use{" "}
+        <code className="text-foreground">slots: [&quot;default&quot;]</code>{" "}
+        for components that can contain children. The slot name corresponds to
+        where child elements are rendered.
+      </p>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">
         Generating AI Prompts
       </h2>
       <p className="text-sm text-muted-foreground mb-4">
-        Use <code className="text-foreground">generateCatalogPrompt</code> to
-        create a system prompt for AI:
+        Use the <code className="text-foreground">catalog.prompt()</code> method
+        to generate a system prompt for AI:
       </p>
-      <Code lang="typescript">{`import { generateCatalogPrompt } from '@json-render/core';
+      <Code lang="typescript">{`// Generate a system prompt from your catalog
+const systemPrompt = catalog.prompt();
 
-const systemPrompt = generateCatalogPrompt(catalog);
+// Or with custom rules for the AI
+const customPrompt = catalog.prompt({
+  customRules: [
+    "Always use Card as the root element for forms",
+    "Group related inputs in a Stack with direction=vertical",
+  ],
+});
+
 // Pass this to your AI model as the system prompt`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Next</h2>

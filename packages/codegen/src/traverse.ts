@@ -1,28 +1,28 @@
-import type { UITree, UIElement } from "@json-render/core";
+import type { Spec, UIElement } from "@json-render/core";
 
 /**
- * Visitor function for tree traversal
+ * Visitor function for spec traversal
  */
 export interface TreeVisitor {
   (element: UIElement, depth: number, parent: UIElement | null): void;
 }
 
 /**
- * Traverse a UI tree depth-first
+ * Traverse a UI spec depth-first
  */
-export function traverseTree(
-  tree: UITree,
+export function traverseSpec(
+  spec: Spec,
   visitor: TreeVisitor,
   startKey?: string,
 ): void {
-  if (!tree || !tree.root) return;
+  if (!spec || !spec.root) return;
 
-  const rootKey = startKey ?? tree.root;
-  const rootElement = tree.elements[rootKey];
+  const rootKey = startKey ?? spec.root;
+  const rootElement = spec.elements[rootKey];
   if (!rootElement) return;
 
   function visit(key: string, depth: number, parent: UIElement | null): void {
-    const element = tree.elements[key];
+    const element = spec.elements[key];
     if (!element) return;
 
     visitor(element, depth, parent);
@@ -38,12 +38,12 @@ export function traverseTree(
 }
 
 /**
- * Collect all unique component types used in a tree
+ * Collect all unique component types used in a spec
  */
-export function collectUsedComponents(tree: UITree): Set<string> {
+export function collectUsedComponents(spec: Spec): Set<string> {
   const components = new Set<string>();
 
-  traverseTree(tree, (element) => {
+  traverseSpec(spec, (element) => {
     components.add(element.type);
   });
 
@@ -51,12 +51,12 @@ export function collectUsedComponents(tree: UITree): Set<string> {
 }
 
 /**
- * Collect all data paths referenced in a tree
+ * Collect all data paths referenced in a spec
  */
-export function collectDataPaths(tree: UITree): Set<string> {
+export function collectDataPaths(spec: Spec): Set<string> {
   const paths = new Set<string>();
 
-  traverseTree(tree, (element) => {
+  traverseSpec(spec, (element) => {
     // Check props for data paths
     for (const [propName, propValue] of Object.entries(element.props)) {
       // Check for path props (e.g., valuePath, dataPath, bindPath)
@@ -136,12 +136,12 @@ function collectPathsFromCondition(
 }
 
 /**
- * Collect all action names used in a tree
+ * Collect all action names used in a spec
  */
-export function collectActions(tree: UITree): Set<string> {
+export function collectActions(spec: Spec): Set<string> {
   const actions = new Set<string>();
 
-  traverseTree(tree, (element) => {
+  traverseSpec(spec, (element) => {
     for (const propValue of Object.values(element.props)) {
       // Check for action prop (string action name)
       if (typeof propValue === "string" && propValue.startsWith("action:")) {

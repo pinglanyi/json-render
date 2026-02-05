@@ -20,69 +20,81 @@ export default function QuickStartPage() {
         Create a catalog that defines what components AI can use:
       </p>
       <Code lang="typescript">{`// lib/catalog.ts
-import { createCatalog } from '@json-render/core';
+import { defineCatalog } from '@json-render/core';
+import { schema } from '@json-render/react';
 import { z } from 'zod';
 
-export const catalog = createCatalog({
+export const catalog = defineCatalog(schema, {
   components: {
     Card: {
       props: z.object({
         title: z.string(),
         description: z.string().nullable(),
       }),
-      hasChildren: true,
+      slots: ["default"],
+      description: "Container card with optional title",
     },
     Button: {
       props: z.object({
         label: z.string(),
-        action: z.string(),
+        action: z.string().nullable(),
       }),
+      description: "Clickable button that triggers an action",
     },
     Text: {
       props: z.object({
         content: z.string(),
       }),
+      description: "Text paragraph",
     },
   },
   actions: {
     submit: {
       params: z.object({ formId: z.string() }),
+      description: "Submit a form",
     },
     navigate: {
       params: z.object({ url: z.string() }),
+      description: "Navigate to a URL",
     },
   },
 });`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">
-        2. Create your components
+        2. Create your components and actions
       </h2>
       <p className="text-sm text-muted-foreground mb-4">
-        Register React components that render each catalog type:
+        Define React components that render each catalog type. Each component
+        receives <code className="text-foreground">props</code>,{" "}
+        <code className="text-foreground">children</code>, and{" "}
+        <code className="text-foreground">onAction</code>:
       </p>
-      <Code lang="tsx">{`// components/registry.tsx
-export const registry = {
-  Card: ({ element, children }) => (
+      <Code lang="tsx">{`// lib/components.tsx
+import { defineComponents } from '@json-render/react';
+import { catalog } from './catalog';
+
+export const components = defineComponents(catalog, {
+  Card: ({ props, children }) => (
     <div className="p-4 border rounded-lg">
-      <h2 className="font-bold">{element.props.title}</h2>
-      {element.props.description && (
-        <p className="text-gray-600">{element.props.description}</p>
+      <h2 className="font-bold">{props.title}</h2>
+      {props.description && (
+        <p className="text-gray-600">{props.description}</p>
       )}
       {children}
     </div>
   ),
-  Button: ({ element, onAction }) => (
+  Button: ({ props, onAction }) => (
     <button
       className="px-4 py-2 bg-blue-500 text-white rounded"
-      onClick={() => onAction(element.props.action, {})}
+      onClick={() => onAction?.(props.action)}
     >
-      {element.props.label}
+      {props.label}
     </button>
   ),
-  Text: ({ element }) => (
-    <p>{element.props.content}</p>
+  Text: ({ props }) => (
+    <p>{props.content}</p>
   ),
-};`}</Code>
+});`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">
         3. Create an API route
@@ -92,12 +104,13 @@ export const registry = {
       </p>
       <Code lang="typescript">{`// app/api/generate/route.ts
 import { streamText } from 'ai';
-import { generateCatalogPrompt } from '@json-render/core';
 import { catalog } from '@/lib/catalog';
 
 export async function POST(req: Request) {
   const { prompt } = await req.json();
-  const systemPrompt = generateCatalogPrompt(catalog);
+
+  // Generate system prompt from catalog
+  const systemPrompt = catalog.prompt();
 
   const result = streamText({
     model: 'anthropic/claude-haiku-4.5',
@@ -105,9 +118,7 @@ export async function POST(req: Request) {
     prompt,
   });
 
-  return new Response(result.textStream, {
-    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-  });
+  return result.toTextStreamResponse();
 }`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">4. Render the UI</h2>
@@ -118,17 +129,18 @@ export async function POST(req: Request) {
 'use client';
 
 import { DataProvider, ActionProvider, VisibilityProvider, Renderer, useUIStream } from '@json-render/react';
-import { registry } from '@/components/registry';
+import { catalog } from '@/lib/catalog';
+import { components } from '@/lib/components';
 
 export default function Page() {
-  const { tree, isLoading, generate } = useUIStream({
-    endpoint: '/api/generate',
+  const { spec, isStreaming, send } = useUIStream({
+    api: '/api/generate',
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    generate(formData.get('prompt') as string);
+    send(formData.get('prompt') as string);
   };
 
   return (
@@ -144,13 +156,13 @@ export default function Page() {
               placeholder="Describe what you want..."
               className="border p-2 rounded"
             />
-            <button type="submit" disabled={isLoading}>
+            <button type="submit" disabled={isStreaming}>
               Generate
             </button>
           </form>
 
           <div className="mt-8">
-            <Renderer tree={tree} registry={registry} />
+            <Renderer spec={spec} catalog={catalog} components={components} loading={isStreaming} />
           </div>
         </ActionProvider>
       </VisibilityProvider>

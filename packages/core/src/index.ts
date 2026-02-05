@@ -5,7 +5,7 @@ export type {
   DynamicNumber,
   DynamicBoolean,
   UIElement,
-  UITree,
+  Spec,
   VisibilityCondition,
   LogicExpression,
   AuthState,
@@ -14,6 +14,9 @@ export type {
   ValidationMode,
   PatchOp,
   JsonPatch,
+  // SpecStream types
+  SpecStreamLine,
+  SpecStreamCompiler,
 } from "./types";
 
 export {
@@ -24,6 +27,12 @@ export {
   resolveDynamicValue,
   getByPath,
   setByPath,
+  findFormValue,
+  // SpecStream - streaming format for building specs
+  parseSpecStreamLine,
+  applySpecStreamPatch,
+  compileSpecStream,
+  createSpecStreamCompiler,
 } from "./types";
 
 // Visibility
@@ -80,12 +89,40 @@ export {
   check,
 } from "./validation";
 
-// Catalog
+// Schema (new API)
+export type {
+  SchemaBuilder,
+  SchemaType,
+  SchemaDefinition,
+  Schema,
+  Catalog,
+  PromptOptions,
+  PromptContext,
+  PromptTemplate,
+  SchemaOptions,
+  SpecValidationResult,
+  InferCatalogInput,
+  InferSpec,
+  // Catalog type inference
+  InferCatalogComponents,
+  InferCatalogActions,
+  InferComponentProps,
+  InferActionParams,
+} from "./schema";
+
+export { defineSchema, defineCatalog } from "./schema";
+
+// Legacy Catalog (for backwards compatibility during migration)
 export type {
   ComponentDefinition,
   CatalogConfig,
-  Catalog,
+  Catalog as LegacyCatalog,
   InferCatalogComponentProps,
+  SystemPromptOptions,
 } from "./catalog";
 
-export { createCatalog, generateCatalogPrompt } from "./catalog";
+export {
+  createCatalog,
+  generateCatalogPrompt,
+  generateSystemPrompt,
+} from "./catalog";

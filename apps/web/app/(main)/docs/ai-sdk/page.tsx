@@ -19,13 +19,13 @@ export default function AiSdkPage() {
       <h2 className="text-xl font-semibold mt-12 mb-4">API Route Setup</h2>
       <Code lang="typescript">{`// app/api/generate/route.ts
 import { streamText } from 'ai';
-import { generateCatalogPrompt } from '@json-render/core';
 import { catalog } from '@/lib/catalog';
 
 export async function POST(req: Request) {
   const { prompt, currentTree } = await req.json();
   
-  const systemPrompt = generateCatalogPrompt(catalog);
+  // Generate system prompt from catalog
+  const systemPrompt = catalog.prompt();
   
   // Optionally include current UI state for context
   const contextPrompt = currentTree 
@@ -38,12 +38,7 @@ export async function POST(req: Request) {
     prompt,
   });
 
-  return new Response(result.textStream, {
-    headers: { 
-      'Content-Type': 'text/plain; charset=utf-8',
-      'Transfer-Encoding': 'chunked',
-    },
-  });
+  return result.toTextStreamResponse();
 }`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Client-Side Hook</h2>
@@ -52,33 +47,33 @@ export async function POST(req: Request) {
       </p>
       <Code lang="tsx">{`'use client';
 
-import { useUIStream } from '@json-render/react';
+import { useUIStream, Renderer } from '@json-render/react';
 
 function GenerativeUI() {
-  const { tree, isLoading, error, generate } = useUIStream({
-    endpoint: '/api/generate',
+  const { spec, isStreaming, error, send } = useUIStream({
+    api: '/api/generate',
   });
 
   return (
     <div>
       <button 
-        onClick={() => generate('Create a dashboard with metrics')}
-        disabled={isLoading}
+        onClick={() => send('Create a dashboard with metrics')}
+        disabled={isStreaming}
       >
-        {isLoading ? 'Generating...' : 'Generate'}
+        {isStreaming ? 'Generating...' : 'Generate'}
       </button>
       
       {error && <p className="text-red-500">{error.message}</p>}
       
-      <Renderer tree={tree} registry={registry} />
+      <Renderer spec={spec} registry={registry} loading={isStreaming} />
     </div>
   );
 }`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Prompt Engineering</h2>
       <p className="text-sm text-muted-foreground mb-4">
-        The <code className="text-foreground">generateCatalogPrompt</code>{" "}
-        function creates an optimized prompt that:
+        The <code className="text-foreground">catalog.prompt()</code> method
+        creates an optimized system prompt that:
       </p>
       <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 mb-4">
         <li>Lists all available components and their props</li>
@@ -90,16 +85,16 @@ function GenerativeUI() {
       <h2 className="text-xl font-semibold mt-12 mb-4">
         Custom System Prompts
       </h2>
-      <Code lang="typescript">{`const basePrompt = generateCatalogPrompt(catalog);
-
-const customPrompt = \`
-\${basePrompt}
-
-Additional instructions:
-- Always use Card components for grouping related content
-- Prefer horizontal layouts (Row) for metrics
-- Use consistent spacing with padding="md"
-\`;`}</Code>
+      <p className="text-sm text-muted-foreground mb-4">
+        Pass custom rules to tailor AI behavior:
+      </p>
+      <Code lang="typescript">{`const systemPrompt = catalog.prompt({
+  customRules: [
+    'Always use Card components for grouping related content',
+    'Prefer horizontal layouts (Row) for metrics',
+    'Use consistent spacing with padding="md"',
+  ],
+});`}</Code>
 
       <h2 className="text-xl font-semibold mt-12 mb-4">Next</h2>
       <p className="text-sm text-muted-foreground">

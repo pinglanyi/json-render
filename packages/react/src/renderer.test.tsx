@@ -13,12 +13,12 @@ const mockCatalog = {
   actions: {},
   functions: {},
   elementSchema: {} as never,
-  treeSchema: {} as never,
+  specSchema: {} as never,
   hasComponent: () => true,
   hasAction: () => false,
   hasFunction: () => false,
   validateElement: () => ({ success: true }),
-  validateTree: () => ({ success: true }),
+  validateSpec: () => ({ success: true }),
 };
 
 describe("createRendererFromCatalog", () => {
@@ -35,15 +35,15 @@ describe("createRendererFromCatalog", () => {
     expect(typeof CatalogRenderer).toBe("function");
   });
 
-  it("returned component renders null for null tree", () => {
+  it("returned component renders null for null spec", () => {
     const registry = {
       text: () => React.createElement("span"),
     };
 
     const CatalogRenderer = createRendererFromCatalog(mockCatalog, registry);
 
-    // The component should handle null tree gracefully
-    const element = React.createElement(CatalogRenderer, { tree: null });
+    // The component should handle null spec gracefully
+    const element = React.createElement(CatalogRenderer, { spec: null });
     expect(element).toBeDefined();
   });
 
@@ -55,7 +55,7 @@ describe("createRendererFromCatalog", () => {
     const CatalogRenderer = createRendererFromCatalog(mockCatalog, registry);
 
     const element = React.createElement(CatalogRenderer, {
-      tree: null,
+      spec: null,
       loading: true,
     });
     expect(element.props.loading).toBe(true);
@@ -72,7 +72,7 @@ describe("createRendererFromCatalog", () => {
     const CatalogRenderer = createRendererFromCatalog(mockCatalog, registry);
 
     const element = React.createElement(CatalogRenderer, {
-      tree: null,
+      spec: null,
       fallback: Fallback,
     });
     expect(element.props.fallback).toBe(Fallback);

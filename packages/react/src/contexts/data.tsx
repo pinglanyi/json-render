@@ -6,6 +6,8 @@ import React, {
   useState,
   useCallback,
   useMemo,
+  useEffect,
+  useRef,
   type ReactNode,
 } from "react";
 import {
@@ -56,6 +58,20 @@ export function DataProvider({
   children,
 }: DataProviderProps) {
   const [data, setData] = useState<DataModel>(initialData);
+
+  // Track the serialized initialData to detect actual value changes (not just reference changes)
+  const initialDataJsonRef = useRef<string>(JSON.stringify(initialData));
+
+  // Sync external data changes with internal state - only when values actually change
+  useEffect(() => {
+    const newJson = JSON.stringify(initialData);
+    if (newJson !== initialDataJsonRef.current) {
+      initialDataJsonRef.current = newJson;
+      if (initialData && Object.keys(initialData).length > 0) {
+        setData((prev) => ({ ...prev, ...initialData }));
+      }
+    }
+  }, [initialData]);
 
   const get = useCallback((path: string) => getByPath(data, path), [data]);
 
@@ -114,8 +130,8 @@ export function useData(): DataContextValue {
  * Hook to get a value from the data model
  */
 export function useDataValue<T>(path: string): T | undefined {
-  const { get } = useData();
-  return get(path) as T | undefined;
+  const { data } = useData();
+  return getByPath(data, path) as T | undefined;
 }
 
 /**
@@ -124,8 +140,8 @@ export function useDataValue<T>(path: string): T | undefined {
 export function useDataBinding<T>(
   path: string,
 ): [T | undefined, (value: T) => void] {
-  const { get, set } = useData();
-  const value = get(path) as T | undefined;
+  const { data, set } = useData();
+  const value = getByPath(data, path) as T | undefined;
   const setValue = useCallback(
     (newValue: T) => set(path, newValue),
     [path, set],
