@@ -6,8 +6,8 @@
   "license": "~~proprietary~~",
   "type": "module",
   "dependencies": {
-    "@json-render/core": "^0.4.0",
-    "@json-render/react": "^0.4.0",
+    "@json-render/core": "workspace:*",
+    "@json-render/react": "workspace:*",
     "@stripe/ui-extension-sdk": "^9.1.0",
     "stripe": "^13.11.0"
   },

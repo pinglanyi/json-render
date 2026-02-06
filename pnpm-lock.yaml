@@ -348,11 +348,11 @@ importers:
   examples/stripe-app:
     dependencies:
       '@json-render/core':
-        specifier: ^0.4.0
-        version: 0.4.0(zod@4.3.5)
+        specifier: workspace:*
+        version: link:../../packages/core
       '@json-render/react':
-        specifier: ^0.4.0
-        version: 0.4.0(react@18.3.1)(zod@4.3.5)
+        specifier: workspace:*
+        version: link:../../packages/react
       '@stripe/ui-extension-sdk':
         specifier: ^9.1.0
         version: 9.1.0(stripe@13.11.0)
@@ -1792,16 +1792,6 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
-
-  '@json-render/core@0.4.0':
-    resolution: {integrity: sha512-zcmNNetyXoqShG9qfXnipnkaGLn3XC7Kec/t3+C39mXAStg2RX29ciZwsZT+Fzo900LeRHRIGel7L/IHCdktrA==}
-    peerDependencies:
-      zod: ^4.0.0
-
-  '@json-render/react@0.4.0':
-    resolution: {integrity: sha512-OAXdWdOrAXHEFzpEF7xV+84D00JEmLMKlt5u0wc+C/P+q4q6TnpAWx2j28PBpDB2mpidkW9VnTUM+SCH9J8Lrw==}
-    peerDependencies:
-      react: ^19.0.0
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -8001,17 +7991,6 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
-
-  '@json-render/core@0.4.0(zod@4.3.5)':
-    dependencies:
-      zod: 4.3.5
-
-  '@json-render/react@0.4.0(react@18.3.1)(zod@4.3.5)':
-    dependencies:
-      '@json-render/core': 0.4.0(zod@4.3.5)
-      react: 18.3.1
-    transitivePeerDependencies:
-      - zod
 
   '@manypkg/find-root@1.1.0':
     dependencies:
