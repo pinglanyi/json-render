@@ -24,6 +24,7 @@ export const playgroundCatalog = defineCatalog(schema, {
       slots: ["default"],
       description:
         "Container card for content sections. Use for forms/content boxes, NOT for page headers.",
+      example: { title: "Overview", description: "Your account summary" },
     },
 
     Stack: {
@@ -37,6 +38,7 @@ export const playgroundCatalog = defineCatalog(schema, {
       }),
       slots: ["default"],
       description: "Flex container for layouts",
+      example: { direction: "vertical", gap: "md" },
     },
 
     Grid: {
@@ -46,6 +48,7 @@ export const playgroundCatalog = defineCatalog(schema, {
       }),
       slots: ["default"],
       description: "Grid layout (1-6 columns)",
+      example: { columns: 3, gap: "md" },
     },
 
     Separator: {
@@ -137,6 +140,13 @@ export const playgroundCatalog = defineCatalog(schema, {
       }),
       description:
         'Data table. columns: header labels. rows: 2D array of cell strings, e.g. [["Alice","admin"],["Bob","user"]].',
+      example: {
+        columns: ["Name", "Role"],
+        rows: [
+          ["Alice", "Admin"],
+          ["Bob", "User"],
+        ],
+      },
     },
 
     Heading: {
@@ -145,6 +155,7 @@ export const playgroundCatalog = defineCatalog(schema, {
         level: z.enum(["h1", "h2", "h3", "h4"]).nullable(),
       }),
       description: "Heading text (h1-h4)",
+      example: { text: "Welcome", level: "h1" },
     },
 
     Text: {
@@ -155,6 +166,7 @@ export const playgroundCatalog = defineCatalog(schema, {
           .nullable(),
       }),
       description: "Paragraph text",
+      example: { text: "Hello, world!" },
     },
 
     Image: {
@@ -173,6 +185,7 @@ export const playgroundCatalog = defineCatalog(schema, {
         size: z.enum(["sm", "md", "lg"]).nullable(),
       }),
       description: "User avatar with fallback initials",
+      example: { name: "Jane Doe", size: "md" },
     },
 
     Badge: {
@@ -181,6 +194,7 @@ export const playgroundCatalog = defineCatalog(schema, {
         variant: z.enum(["default", "success", "warning", "danger"]).nullable(),
       }),
       description: "Status badge",
+      example: { text: "Active", variant: "success" },
     },
 
     Alert: {
@@ -190,6 +204,11 @@ export const playgroundCatalog = defineCatalog(schema, {
         type: z.enum(["info", "success", "warning", "error"]).nullable(),
       }),
       description: "Alert banner",
+      example: {
+        title: "Note",
+        message: "Your changes have been saved.",
+        type: "success",
+      },
     },
 
     Progress: {
@@ -199,6 +218,7 @@ export const playgroundCatalog = defineCatalog(schema, {
         label: z.string().nullable(),
       }),
       description: "Progress bar (value 0-100)",
+      example: { value: 65, max: 100, label: "Upload progress" },
     },
 
     Skeleton: {
@@ -281,6 +301,12 @@ export const playgroundCatalog = defineCatalog(schema, {
       }),
       events: ["submit", "focus", "blur"],
       description: "Text input field. Use statePath for two-way binding.",
+      example: {
+        label: "Email",
+        name: "email",
+        type: "email",
+        placeholder: "you@example.com",
+      },
     },
 
     Textarea: {
@@ -360,6 +386,7 @@ export const playgroundCatalog = defineCatalog(schema, {
       }),
       events: ["press"],
       description: "Clickable button. Bind on.press for handler.",
+      example: { label: "Submit", variant: "primary" },
     },
 
     Link: {

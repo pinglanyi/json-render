@@ -22,6 +22,8 @@ export interface ComponentDefinition<
   hasChildren?: boolean;
   /** Description for AI generation */
   description?: string;
+  /** Example prop values used in prompt examples (auto-generated from Zod schema if omitted) */
+  example?: Record<string, unknown>;
 }
 
 /**

@@ -26,6 +26,7 @@ export const stripeCatalog = defineCatalog(schema, {
       }),
       description:
         "Flex layout container for arranging children horizontally or vertically with configurable gap and alignment",
+      example: { direction: "vertical", gap: "medium" },
     },
 
     Inline: {
@@ -71,6 +72,7 @@ export const stripeCatalog = defineCatalog(schema, {
           .default("large"),
       }),
       description: "Display a heading/title text with configurable size",
+      example: { text: "Overview", size: "large" },
     },
 
     Text: {
@@ -94,6 +96,7 @@ export const stripeCatalog = defineCatalog(schema, {
       }),
       description:
         "Display body text with configurable color, size, and weight",
+      example: { content: "Payment received successfully.", color: "primary" },
     },
 
     // =========================================================================
@@ -111,6 +114,13 @@ export const stripeCatalog = defineCatalog(schema, {
       }),
       description:
         "Display a key metric with label, value, and optional trend indicator for KPIs",
+      example: {
+        label: "Revenue",
+        value: "$12,450",
+        change: "+8.2%",
+        changeType: "positive",
+        format: "currency",
+      },
     },
 
     Badge: {
@@ -128,6 +138,7 @@ export const stripeCatalog = defineCatalog(schema, {
           .default("neutral"),
       }),
       description: "Status badge indicator with configurable color type",
+      example: { label: "Active", type: "positive" },
     },
 
     Icon: {
@@ -284,6 +295,12 @@ export const stripeCatalog = defineCatalog(schema, {
         required: z.boolean().nullable(),
       }),
       description: "Text input field with label, validation, and data binding",
+      example: {
+        label: "Email",
+        placeholder: "customer@example.com",
+        valuePath: "/form/email",
+        type: "email",
+      },
     },
 
     TextArea: {
@@ -379,6 +396,11 @@ export const stripeCatalog = defineCatalog(schema, {
       }),
       description:
         "Action button with configurable style, size, and action handling",
+      example: {
+        label: "View Details",
+        action: "viewCustomer",
+        type: "primary",
+      },
     },
 
     ButtonGroup: {
@@ -451,6 +473,14 @@ export const stripeCatalog = defineCatalog(schema, {
       }),
       description:
         "Data table with configurable columns and optional row actions",
+      example: {
+        title: "Recent Payments",
+        statePath: "/payments/data",
+        columns: [
+          { key: "amount", label: "Amount" },
+          { key: "status", label: "Status" },
+        ],
+      },
     },
 
     // =========================================================================
@@ -465,6 +495,11 @@ export const stripeCatalog = defineCatalog(schema, {
       }),
       description:
         "Card displaying customer information with name, email, and status",
+      example: {
+        name: "Jane Smith",
+        email: "jane@example.com",
+        status: "active",
+      },
     },
 
     PaymentCard: {

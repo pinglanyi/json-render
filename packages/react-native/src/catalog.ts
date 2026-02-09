@@ -28,6 +28,7 @@ export const standardComponentDefinitions = {
     slots: ["default"],
     description:
       "Generic container wrapper. Use for grouping elements with padding, margin, and background color.",
+    example: { padding: 16, backgroundColor: "#FFFFFF" },
   },
 
   Row: {
@@ -53,6 +54,7 @@ export const standardComponentDefinitions = {
     slots: ["default"],
     description:
       "Horizontal flex layout. Use for placing elements side by side.",
+    example: { gap: 12, alignItems: "center" },
   },
 
   Column: {
@@ -77,6 +79,7 @@ export const standardComponentDefinitions = {
     slots: ["default"],
     description:
       "Vertical flex layout. Use for stacking elements top to bottom.",
+    example: { gap: 12, padding: 16 },
   },
 
   ScrollContainer: {
@@ -143,6 +146,7 @@ export const standardComponentDefinitions = {
     slots: [],
     description:
       "Heading text at various levels. h1 is largest, h4 is smallest.",
+    example: { text: "Welcome", level: "h1" },
   },
 
   Paragraph: {
@@ -156,6 +160,7 @@ export const standardComponentDefinitions = {
     slots: [],
     description:
       "Body text paragraph. Use for descriptions and longer content.",
+    example: { text: "This is a paragraph of body text." },
   },
 
   Label: {
@@ -168,6 +173,7 @@ export const standardComponentDefinitions = {
     slots: [],
     description:
       "Small utility text. Use for captions, form labels, and secondary information.",
+    example: { text: "Status", size: "sm" },
   },
 
   Image: {
@@ -181,6 +187,12 @@ export const standardComponentDefinitions = {
     }),
     slots: [],
     description: "Image display. Provide a source URL and optional dimensions.",
+    example: {
+      src: "https://picsum.photos/300/200",
+      alt: "Photo",
+      width: 300,
+      height: 200,
+    },
   },
 
   Avatar: {
@@ -193,6 +205,7 @@ export const standardComponentDefinitions = {
     slots: [],
     description:
       "Circular avatar showing an image or initials. Use for user profiles and contacts.",
+    example: { initials: "JD", size: "md" },
   },
 
   Badge: {
@@ -205,6 +218,7 @@ export const standardComponentDefinitions = {
     slots: [],
     description:
       "Small colored indicator with a label. Use for status, counts, and categories.",
+    example: { label: "New", variant: "info" },
   },
 
   Chip: {
@@ -237,6 +251,7 @@ export const standardComponentDefinitions = {
     slots: [],
     description:
       "Pressable button with label. Set variant for styling. Bind on.press for the handler to call on press.",
+    example: { label: "Submit", variant: "primary" },
   },
 
   TextInput: {
@@ -257,6 +272,11 @@ export const standardComponentDefinitions = {
     slots: [],
     description:
       "Text input field. Use statePath to bind to the state model for two-way binding. The value typed by the user is stored at the statePath.",
+    example: {
+      placeholder: "Enter text...",
+      statePath: "/inputValue",
+      label: "Name",
+    },
   },
 
   Switch: {
@@ -351,6 +371,7 @@ export const standardComponentDefinitions = {
     slots: ["default"],
     description:
       "Elevated card container with optional title. Use for grouping related content.",
+    example: { title: "Details", padding: 16, elevated: true },
   },
 
   ListItem: {
@@ -365,6 +386,11 @@ export const standardComponentDefinitions = {
     slots: [],
     description:
       "List row with title, subtitle, and optional leading/trailing text. Bind on.press for the press handler.",
+    example: {
+      title: "Settings",
+      subtitle: "Manage your preferences",
+      showChevron: true,
+    },
   },
 
   Modal: {

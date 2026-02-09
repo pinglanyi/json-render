@@ -21,6 +21,7 @@ export const standardComponentDefinitions = {
     defaultDuration: 90,
     description:
       "Full-screen title card with centered text. Use for intros, outros, and section breaks.",
+    example: { title: "Welcome", subtitle: "An introduction" },
   },
 
   ImageSlide: {
@@ -34,6 +35,11 @@ export const standardComponentDefinitions = {
     defaultDuration: 150,
     description:
       "Full-screen image display. Use for product shots, photos, and visual content.",
+    example: {
+      src: "https://picsum.photos/1920/1080?random=1",
+      alt: "Hero image",
+      fit: "cover",
+    },
   },
 
   SplitScreen: {
@@ -61,6 +67,10 @@ export const standardComponentDefinitions = {
     defaultDuration: 150,
     description:
       "Quote display with author. Props: quote, author, textColor, backgroundColor. Set transparent:true when using as overlay on images.",
+    example: {
+      quote: "The best way to predict the future is to invent it.",
+      author: "Alan Kay",
+    },
   },
 
   StatCard: {
@@ -74,6 +84,7 @@ export const standardComponentDefinitions = {
     type: "scene",
     defaultDuration: 90,
     description: "Large statistic display. Use for key metrics and numbers.",
+    example: { value: "10M+", label: "Users worldwide", prefix: "" },
   },
 
   TypingText: {

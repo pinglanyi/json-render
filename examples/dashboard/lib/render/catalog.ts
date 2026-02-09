@@ -18,6 +18,7 @@ export const dashboardCatalog = defineCatalog(schema, {
       }),
       slots: ["default"],
       description: "Flex layout container",
+      example: { direction: "vertical", gap: "md" },
     },
 
     Accordion: {
@@ -50,6 +51,7 @@ export const dashboardCatalog = defineCatalog(schema, {
       }),
       description:
         "Clickable button. Use actionParams to pass parameters to the action (e.g., { limit: 5, sort: 'newest' })",
+      example: { label: "Save", variant: "default", action: "formSubmit" },
     },
 
     Input: {
@@ -60,6 +62,12 @@ export const dashboardCatalog = defineCatalog(schema, {
         type: z.enum(["text", "email", "password", "number", "tel"]).nullable(),
       }),
       description: "Text input field",
+      example: {
+        label: "Email",
+        valuePath: "/form/email",
+        placeholder: "you@example.com",
+        type: "email",
+      },
     },
 
     Form: {
@@ -81,6 +89,7 @@ export const dashboardCatalog = defineCatalog(schema, {
           .nullable(),
       }),
       description: "Status badge",
+      example: { text: "Active", variant: "default" },
     },
 
     Alert: {
@@ -304,6 +313,13 @@ export const dashboardCatalog = defineCatalog(schema, {
         emptyMessage: z.string().nullable(),
       }),
       description: "Data table with optional row actions (delete, edit, etc.)",
+      example: {
+        statePath: "/customers/data",
+        columns: [
+          { key: "name", label: "Name" },
+          { key: "email", label: "Email" },
+        ],
+      },
     },
 
     // Typography
@@ -313,6 +329,7 @@ export const dashboardCatalog = defineCatalog(schema, {
         level: z.enum(["h1", "h2", "h3", "h4"]).nullable(),
       }),
       description: "Section heading",
+      example: { text: "Dashboard", level: "h1" },
     },
 
     Text: {
@@ -321,6 +338,7 @@ export const dashboardCatalog = defineCatalog(schema, {
         muted: z.boolean().nullable(),
       }),
       description: "Text content",
+      example: { content: "Welcome back! Here is your overview." },
     },
 
     // Charts

@@ -47,6 +47,7 @@ export const catalog = defineCatalog(schema, {
       slots: [],
       description:
         "Icon display using Ionicons. Use for action buttons, navigation items, and indicators. ALWAYS use this instead of emoji characters for UI icons. Use Ionicons naming convention (e.g. heart, heart-outline, chatbubble-outline, share-social-outline).",
+      example: { name: "heart-outline", size: 24, color: "#007AFF" },
     },
   },
   actions: standardActionDefinitions,

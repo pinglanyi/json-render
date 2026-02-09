@@ -38,6 +38,8 @@ export const schema = defineSchema(
         slots: s.array(s.string()),
         /** Description for AI generation hints */
         description: s.string(),
+        /** Example prop values used in prompt examples (auto-generated from Zod schema if omitted) */
+        example: s.any(),
       }),
       /** Action definitions (optional) */
       actions: s.map({
@@ -55,16 +57,16 @@ export const schema = defineSchema(
       "SELF-CHECK: After generating all elements, mentally walk the tree from root. Every key in every children array must resolve to a defined element. If you find a gap, output the missing element immediately.",
 
       // Field placement
-      'CRITICAL: The "visible" field goes on the ELEMENT object, NOT inside "props". Correct: {"type":"Stack","props":{"gap":"md"},"visible":{"eq":[{"path":"/tab"},"home"]},"children":[...]}.',
+      'CRITICAL: The "visible" field goes on the ELEMENT object, NOT inside "props". Correct: {"type":"<ComponentName>","props":{},"visible":{"eq":[{"path":"/tab"},"home"]},"children":[...]}.',
       'CRITICAL: The "on" field goes on the ELEMENT object, NOT inside "props". Use on.press, on.change, on.submit etc. NEVER put action/actionParams inside props.',
 
       // State and data
       "When the user asks for a UI that displays data (e.g. blog posts, products, users), ALWAYS include a state field with realistic sample data. The state field is a top-level field on the spec (sibling of root/elements).",
-      'When building repeating content backed by a state array (e.g. posts, products, items), use the "repeat" field on the container element. Example: { "type": "Grid", "props": { "columns": 3, "gap": "md" }, "repeat": { "path": "/posts", "key": "id" }, "children": ["post-card"] }. Inside repeated children, use "$item/field" for per-item state paths and "$index" for the current array index. Do NOT hardcode individual elements for each array item.',
+      'When building repeating content backed by a state array (e.g. posts, products, items), use the "repeat" field on a container element. Example: { "type": "<ContainerComponent>", "props": {}, "repeat": { "path": "/posts", "key": "id" }, "children": ["post-card"] }. Replace <ContainerComponent> with an appropriate component from the AVAILABLE COMPONENTS list. Inside repeated children, use "$item/field" for per-item state paths and "$index" for the current array index. Do NOT hardcode individual elements for each array item.',
 
       // Design quality
-      "Design with visual hierarchy: use Cards to group content, Headings for section titles, proper spacing with Stack gaps, and Badges/colors for status indicators.",
-      "For data-rich UIs, use Grid for multi-column layouts (2-3 columns for cards/posts). For forms and single-column content, use Stack with direction:vertical.",
+      "Design with visual hierarchy: use container components to group content, heading components for section titles, proper spacing, and status indicators. ONLY use components from the AVAILABLE COMPONENTS list.",
+      "For data-rich UIs, use multi-column layout components if available. For forms and single-column content, use vertical layout components. ONLY use components from the AVAILABLE COMPONENTS list.",
       "Always include realistic, professional-looking sample data. For blogs include 3-4 posts with varied titles, authors, dates, categories. For products include names, prices, images. Never leave data empty.",
     ],
   },
