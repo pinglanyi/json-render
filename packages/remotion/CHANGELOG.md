@@ -1,5 +1,12 @@
 # @json-render/remotion
 
+## 0.7.0
+
+### Patch Changes
+
+- Updated dependencies [2d70fab]
+  - @json-render/core@0.7.0
+
 ## 0.6.1
 
 ### Patch Changes
