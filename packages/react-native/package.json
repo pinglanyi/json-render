@@ -56,10 +56,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@json-render/core": "workspace:*",
-    "@internal/react-state": "workspace:*"
+    "@json-render/core": "workspace:*"
   },
   "devDependencies": {
+    "@internal/react-state": "workspace:*",
     "@internal/typescript-config": "workspace:*",
     "@types/react": "19.2.3",
     "react-native": "0.83.1",

@@ -61,10 +61,10 @@
   },
   "dependencies": {
     "@json-render/core": "workspace:*",
-    "@internal/react-state": "workspace:*",
     "@react-pdf/renderer": "^4.3.2"
   },
   "devDependencies": {
+    "@internal/react-state": "workspace:*",
     "@internal/typescript-config": "workspace:*",
     "@types/react": "19.2.3",
     "tsup": "^8.0.2",

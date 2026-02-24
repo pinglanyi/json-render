@@ -5,6 +5,16 @@ export const metadata = pageMetadata("docs/changelog")
 
 Notable changes and updates to json-render.
 
+## v0.9.1
+
+February 2026
+
+### Fixed: Install failure due to private dependency
+
+`@json-render/react`, `@json-render/react-pdf`, and `@json-render/react-native` v0.9.0 failed to install because `@internal/react-state` (a private workspace package) was published as a dependency. The internal package is now bundled into each renderer at build time, so it no longer needs to be resolved from npm.
+
+---
+
 ## v0.9.0
 
 February 2026
