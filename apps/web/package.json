@@ -12,7 +12,7 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/gateway": "^3.0.13",
+    "@ai-sdk/openai": "^3.0.22",
     "@ai-sdk/react": "3.0.79",
     "@json-render/codegen": "workspace:*",
     "@json-render/core": "workspace:*",
