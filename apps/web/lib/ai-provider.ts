@@ -1,4 +1,5 @@
 import { createOpenAI } from "@ai-sdk/openai";
+import type { LanguageModel } from "ai";
 
 /**
  * OpenAI-compatible provider configured via environment variables.
@@ -22,7 +23,12 @@ export const openaiProvider = createOpenAI({
 
 export const DEFAULT_MODEL = "gpt-4o-mini";
 
-/** Returns the configured model instance. */
-export function getModel(modelId?: string) {
-  return openaiProvider(modelId ?? process.env.AI_MODEL ?? DEFAULT_MODEL);
+/**
+ * Returns the configured model instance using the Chat Completions API
+ * (/v1/chat/completions). This ensures compatibility with DeepSeek, vLLM,
+ * NUWA, and other OpenAI-compatible providers that do NOT implement the
+ * newer OpenAI Responses API (/responses).
+ */
+export function getModel(modelId?: string): LanguageModel {
+  return openaiProvider.chat(modelId ?? process.env.AI_MODEL ?? DEFAULT_MODEL);
 }
