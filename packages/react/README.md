@@ -261,6 +261,7 @@ const { errors, validate } = useFieldValidation("/form/email", {
 | `useActions()` | Access action context |
 | `useAction(name)` | Get a single action dispatch function |
 | `useFieldValidation(path, config)` | Field validation state |
+| `useOptionalValidation()` | Non-throwing validation context (returns `null` if no provider) |
 | `useUIStream(options)` | Stream specs from an API endpoint |
 
 ## Visibility Conditions
@@ -324,11 +325,60 @@ Any prop value can use data-driven expressions that resolve at render time. The 
 
 For two-way binding, use `{ "$bindState": "/path" }` on the natural value prop (e.g. `value`, `checked`, `pressed`). Inside repeat scopes, use `{ "$bindItem": "field" }` instead. Components receive resolved `bindings` with the state path for each bound prop; use `useBoundProp(props.value, bindings?.value)` to get `[value, setValue]`.
 
+### `$template` and `$computed`
+
+```json
+{
+  "label": { "$template": "Hello, ${/user/name}!" },
+  "fullName": {
+    "$computed": "fullName",
+    "args": {
+      "first": { "$state": "/form/firstName" },
+      "last": { "$state": "/form/lastName" }
+    }
+  }
+}
+```
+
+Register functions via the `functions` prop on `JSONUIProvider` or `createRenderer`:
+
+```tsx
+<JSONUIProvider
+  spec={spec}
+  catalog={catalog}
+  functions={{ fullName: (args) => `${args.first} ${args.last}` }}
+>
+```
+
 See [@json-render/core](../core/README.md) for full expression syntax.
+
+## State Watchers
+
+Elements can declare a `watch` field to trigger actions when state values change:
+
+```json
+{
+  "type": "Select",
+  "props": {
+    "label": "Country",
+    "value": { "$bindState": "/form/country" },
+    "options": ["US", "Canada", "UK"]
+  },
+  "watch": {
+    "/form/country": {
+      "action": "loadCities",
+      "params": { "country": { "$state": "/form/country" } }
+    }
+  },
+  "children": []
+}
+```
+
+`watch` is a top-level field on elements (sibling of `type`/`props`/`children`), not inside `props`. Watchers only fire on value changes, not on initial render.
 
 ## Built-in Actions
 
-The `setState`, `pushState`, and `removeState` actions are built into the React schema and handled automatically by `ActionProvider`. They are injected into AI prompts without needing to be declared in your catalog's `actions`. They update the state model, which triggers re-evaluation of visibility conditions and dynamic prop expressions:
+The `setState`, `pushState`, `removeState`, and `validateForm` actions are built into the React schema and handled automatically by `ActionProvider`. They are injected into AI prompts without needing to be declared in your catalog's `actions`:
 
 ```json
 {
@@ -343,6 +393,26 @@ The `setState`, `pushState`, and `removeState` actions are built into the React 
   "children": []
 }
 ```
+
+### `validateForm`
+
+Validate all registered form fields at once and write the result to state:
+
+```json
+{
+  "type": "Button",
+  "props": { "label": "Submit" },
+  "on": {
+    "press": [
+      { "action": "validateForm", "params": { "statePath": "/formResult" } },
+      { "action": "submitForm" }
+    ]
+  },
+  "children": []
+}
+```
+
+Writes `{ valid: boolean, errors: Record<string, string[]> }` to the specified state path (defaults to `/formValidation`).
 
 ## Component Props
 
@@ -451,7 +521,7 @@ function App() {
 |--------|---------|
 | `defineRegistry` | Create a type-safe component registry from a catalog |
 | `Renderer` | Render a spec using a registry |
-| `schema` | Element tree schema (includes built-in actions: `setState`, `pushState`, `removeState`) |
+| `schema` | Element tree schema (includes built-in actions: `setState`, `pushState`, `removeState`, `validateForm`) |
 | `useStateStore` | Access state context |
 | `useStateValue` | Get single value from state |
 | `useBoundProp` | Two-way binding for `$bindState`/`$bindItem` expressions |

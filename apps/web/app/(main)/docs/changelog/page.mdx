@@ -5,6 +5,119 @@ export const metadata = pageMetadata("docs/changelog")
 
 Notable changes and updates to json-render.
 
+## v0.10.0
+
+February 2026
+
+### New: `@json-render/vue`
+
+Vue 3 renderer for json-render with full feature parity with `@json-render/react`. Data binding, visibility conditions, actions, validation, repeat scopes, streaming, and external store support.
+
+```bash
+npm install @json-render/core @json-render/vue
+```
+
+```typescript
+import { h } from "vue";
+import { defineRegistry, Renderer } from "@json-render/vue";
+import { schema } from "@json-render/vue/schema";
+
+const { registry } = defineRegistry(catalog, {
+  components: {
+    Card: ({ props, children }) =>
+      h("div", { class: "card" }, [h("h3", null, props.title), children]),
+    Button: ({ props, emit }) =>
+      h("button", { onClick: () => emit("press") }, props.label),
+  },
+});
+```
+
+Providers: `StateProvider`, `ActionProvider`, `VisibilityProvider`, `ValidationProvider`. Composables: `useStateStore`, `useStateValue`, `useActions`, `useAction`, `useIsVisible`, `useFieldValidation`, `useBoundProp`, `useUIStream`, `useChatUI`.
+
+See the [Vue API reference](/docs/api/vue) for details.
+
+### New: `@json-render/xstate`
+
+[XState Store](https://stately.ai/docs/xstate-store) (atom) adapter for json-render's `StateStore` interface. Wire an `@xstate/store` atom as the state backend for any renderer.
+
+```bash
+npm install @json-render/xstate @xstate/store
+```
+
+```typescript
+import { createAtom } from "@xstate/store";
+import { xstateStoreStateStore } from "@json-render/xstate";
+
+const atom = createAtom({ count: 0 });
+const store = xstateStoreStateStore({ atom });
+```
+
+Requires `@xstate/store` v3+.
+
+### New: `$computed` and `$template` Expressions
+
+Two new prop expression types for dynamic values:
+
+- **`$template`** -- interpolate state values into strings: `{ "$template": "Hello, ${/user/name}!" }`
+- **`$computed`** -- call registered functions: `{ "$computed": "fullName", "args": { "first": { "$state": "/form/firstName" } } }`
+
+Register functions via the `functions` prop on `JSONUIProvider` or `createRenderer`. See [Computed Values](/docs/computed-values) for details.
+
+### New: State Watchers
+
+Elements can declare a `watch` field to trigger actions when state values change. Useful for cascading dependencies like country/city selects.
+
+```json
+{
+  "type": "Select",
+  "props": { "value": { "$bindState": "/form/country" }, "options": ["US", "Canada"] },
+  "watch": {
+    "/form/country": { "action": "loadCities", "params": { "country": { "$state": "/form/country" } } }
+  }
+}
+```
+
+`watch` is a top-level field on elements (sibling of type/props/children), not inside props. Watchers only fire on value changes, not on initial render. See [Watchers](/docs/watchers) for details.
+
+### New: Cross-Field Validation
+
+New built-in validation functions for cross-field comparisons:
+
+- `equalTo` -- alias for `matches` with clearer semantics
+- `lessThan` -- value must be less than another field
+- `greaterThan` -- value must be greater than another field
+- `requiredIf` -- required only when a condition field is truthy
+
+Validation check args now resolve through `resolvePropValue`, so `$state` expressions work consistently.
+
+### New: `validateForm` Action
+
+Built-in action (React) that validates all registered form fields at once and writes `{ valid, errors }` to state:
+
+```json
+{
+  "on": {
+    "press": [
+      { "action": "validateForm", "params": { "statePath": "/formResult" } },
+      { "action": "submitForm" }
+    ]
+  }
+}
+```
+
+### Improved: shadcn/ui Validation
+
+All form components now support `checks` and `validateOn` props:
+- Checkbox, Radio, Switch added validation support
+- `validateOn` controls timing: `"change"` (default for Select, Checkbox, Radio, Switch), `"blur"` (default for Input, Textarea), or `"submit"`
+
+### New Examples
+
+- **Vue example** -- standalone Vue 3 app with custom components
+- **Vite Renderers** -- side-by-side React and Vue renderers with shared catalog
+
+---
+
 ## v0.9.1
 
 February 2026

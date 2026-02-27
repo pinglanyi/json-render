@@ -1,5 +1,19 @@
 # @json-render/react-pdf
 
+## 0.10.0
+
+### Patch Changes
+
+- Updated dependencies [9cef4e9]
+  - @json-render/core@0.10.0
+
+## 0.9.1
+
+### Patch Changes
+
+- b103676: Fix install failure caused by `@internal/react-state` (a private workspace package) being listed as a published dependency. The internal package is now bundled into each renderer's output at build time, so consumers no longer need to resolve it from npm.
+  - @json-render/core@0.9.1
+
 ## 0.9.0
 
 ### Minor Changes

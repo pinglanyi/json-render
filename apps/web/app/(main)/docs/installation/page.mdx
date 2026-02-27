@@ -9,6 +9,18 @@ Install the core package plus your renderer of choice.
 
 <PackageInstall packages="@json-render/core @json-render/react" />
 
+Peer dependencies: `react ^19.0.0` and `zod ^4.0.0`.
+
+<PackageInstall packages="react zod" />
+
+## For Vue
+
+<PackageInstall packages="@json-render/core @json-render/vue" />
+
+Peer dependencies: `vue ^3.5.0` and `zod ^4.0.0`.
+
+<PackageInstall packages="vue zod" />
+
 ## For React UI with shadcn/ui
 
 Pre-built components for fast prototyping and production use:
@@ -35,16 +47,9 @@ If you want to wire json-render to an existing state management library instead 
 
 <PackageInstall packages="@json-render/jotai" />
 
+<PackageInstall packages="@json-render/xstate" />
+
 See the [Data Binding](/docs/data-binding#external-store-controlled-mode) guide for usage.
-
-## Peer Dependencies
-
-json-render requires the following peer dependencies:
-
-- `react` ^19.0.0
-- `zod` ^4.0.0
-
-<PackageInstall packages="react zod" />
 
 ## For AI Integration
 

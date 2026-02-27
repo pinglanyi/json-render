@@ -72,7 +72,11 @@ export {
 } from "./visibility";
 
 // Prop Expressions
-export type { PropExpression, PropResolutionContext } from "./props";
+export type {
+  PropExpression,
+  PropResolutionContext,
+  ComputedFunction,
+} from "./props";
 
 export {
   resolvePropValue,

@@ -69,6 +69,12 @@ export interface UIElement<
   on?: Record<string, ActionBinding | ActionBinding[]>;
   /** Repeat children once per item in a state array */
   repeat?: { statePath: string; key?: string };
+  /**
+   * State watchers — maps JSON Pointer state paths to action bindings.
+   * When the value at a watched path changes, the bound actions fire.
+   * Useful for cascading dependencies (e.g. country → city option loading).
+   */
+  watch?: Record<string, ActionBinding | ActionBinding[]>;
 }
 
 /**

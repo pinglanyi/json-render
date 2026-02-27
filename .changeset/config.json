@@ -13,7 +13,9 @@
       "@json-render/codegen",
       "@json-render/zustand",
       "@json-render/redux",
-      "@json-render/jotai"
+      "@json-render/jotai",
+      "@json-render/vue",
+      "@json-render/xstate"
     ]
   ],
   "linked": [],

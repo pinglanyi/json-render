@@ -30,6 +30,7 @@ export {
 export {
   ValidationProvider,
   useValidation,
+  useOptionalValidation,
   useFieldValidation,
   type ValidationContextValue,
   type ValidationProviderProps,

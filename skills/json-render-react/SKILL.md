@@ -119,6 +119,8 @@ Any prop value can be a data-driven expression resolved by the renderer before c
 - **`{ "$bindState": "/path" }`** - two-way binding: reads from state and enables write-back. Use on the natural value prop (value, checked, pressed, etc.) of form components.
 - **`{ "$bindItem": "field" }`** - two-way binding to a repeat item field. Use inside repeat scopes.
 - **`{ "$cond": <condition>, "$then": <value>, "$else": <value> }`** - conditional value
+- **`{ "$template": "Hello, ${/name}!" }`** - interpolates state values into strings
+- **`{ "$computed": "fn", "args": { ... } }`** - calls registered functions with resolved args
 
 ```json
 {
@@ -133,6 +135,14 @@ Any prop value can be a data-driven expression resolved by the renderer before c
 Components do not use a `statePath` prop for two-way binding. Use `{ "$bindState": "/path" }` on the natural value prop instead.
 
 Components receive already-resolved props. For two-way bound props, use the `useBoundProp` hook with the `bindings` map the renderer provides.
+
+Register `$computed` functions via the `functions` prop on `JSONUIProvider` or `createRenderer`:
+
+```tsx
+<JSONUIProvider
+  functions={{ fullName: (args) => `${args.first} ${args.last}` }}
+>
+```
 
 ## Event System
 
@@ -166,15 +176,31 @@ Link: ({ props, on }) => {
 
 The `EventHandle` returned by `on()` has: `emit()`, `shouldPreventDefault` (boolean), and `bound` (boolean).
 
+## State Watchers
+
+Elements can declare a `watch` field (top-level, sibling of type/props/children) to trigger actions when state values change:
+
+```json
+{
+  "type": "Select",
+  "props": { "value": { "$bindState": "/form/country" }, "options": ["US", "Canada"] },
+  "watch": { "/form/country": { "action": "loadCities" } },
+  "children": []
+}
+```
+
 ## Built-in Actions
 
-The `setState`, `pushState`, and `removeState` actions are built into the React schema and handled automatically by `ActionProvider`. They are injected into AI prompts without needing to be declared in catalog `actions`:
+The `setState`, `pushState`, `removeState`, and `validateForm` actions are built into the React schema and handled automatically by `ActionProvider`. They are injected into AI prompts without needing to be declared in catalog `actions`:
 
 ```json
 { "action": "setState", "params": { "statePath": "/activeTab", "value": "home" } }
 { "action": "pushState", "params": { "statePath": "/items", "value": { "text": "New" } } }
 { "action": "removeState", "params": { "statePath": "/items", "index": 0 } }
+{ "action": "validateForm", "params": { "statePath": "/formResult" } }
 ```
+
+`validateForm` validates all registered fields and writes `{ valid, errors }` to state.
 
 Note: `statePath` in action params (e.g. `setState.statePath`) targets the mutation path. Two-way binding in component props uses `{ "$bindState": "/path" }` on the value prop, not `statePath`.
 
@@ -223,12 +249,13 @@ const Card = ({ props, children }: BaseComponentProps<{ title?: string }>) => (
 |--------|---------|
 | `defineRegistry` | Create a type-safe component registry from a catalog |
 | `Renderer` | Render a spec using a registry |
-| `schema` | Element tree schema (includes built-in state actions) |
+| `schema` | Element tree schema (includes built-in state actions: setState, pushState, removeState, validateForm) |
 | `useStateStore` | Access state context |
 | `useStateValue` | Get single value from state |
 | `useBoundProp` | Two-way binding for `$bindState`/`$bindItem` expressions |
 | `useActions` | Access actions context |
 | `useAction` | Get a single action dispatch function |
+| `useOptionalValidation` | Non-throwing variant of useValidation (returns null if no provider) |
 | `useUIStream` | Stream specs from an API endpoint |
 | `createStateStore` | Create a framework-agnostic in-memory `StateStore` |
 | `StateStore` | Interface for plugging in external state management |
