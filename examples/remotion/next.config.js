@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@json-render/core", "@json-render/remotion"],
+  serverExternalPackages: ["@ai-sdk/openai"],
 };
 
 export default nextConfig;
