@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { buildUserPrompt } from "@json-render/core";
 import { minuteRateLimit, dailyRateLimit } from "@/lib/rate-limit";
 import { playgroundCatalog } from "@/lib/render/catalog";
+import { getModel } from "@/lib/ai-provider";
 
 export const maxDuration = 30;
 
@@ -19,7 +20,6 @@ const SYSTEM_PROMPT = playgroundCatalog.prompt({
 });
 
 const MAX_PROMPT_LENGTH = 500;
-const DEFAULT_MODEL = "anthropic/claude-haiku-4.5";
 
 export async function POST(req: Request) {
   // Get client IP for rate limiting
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
   });
 
   const result = streamText({
-    model: process.env.AI_GATEWAY_MODEL || DEFAULT_MODEL,
+    model: getModel(),
     system: SYSTEM_PROMPT,
     prompt: userPrompt,
     temperature: 0.7,

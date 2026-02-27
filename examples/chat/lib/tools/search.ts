@@ -1,5 +1,5 @@
 import { tool, generateText } from "ai";
-import { gateway } from "@ai-sdk/gateway";
+import { getModel } from "../ai-provider";
 import { z } from "zod";
 
 /**
@@ -23,7 +23,7 @@ export const webSearch = tool({
   execute: async ({ query }) => {
     try {
       const { text } = await generateText({
-        model: gateway("perplexity/sonar"),
+        model: getModel(),
         prompt: query,
       });
       return { content: text };
