@@ -2,7 +2,7 @@ import createMDX from "@next/mdx";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  serverExternalPackages: ["bash-tool", "just-bash", "@mongodb-js/zstd"],
+  serverExternalPackages: ["bash-tool", "just-bash", "@mongodb-js/zstd", "@ai-sdk/openai"],
   pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
   async redirects() {
     return [
