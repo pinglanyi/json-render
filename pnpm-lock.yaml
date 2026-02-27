@@ -313,9 +313,9 @@ importers:
 
   examples/dashboard:
     dependencies:
-      '@ai-sdk/gateway':
-        specifier: ^3.0.13
-        version: 3.0.13(zod@4.3.5)
+      '@ai-sdk/openai':
+        specifier: ^3.0.22
+        version: 3.0.31(zod@4.3.5)
       '@dnd-kit/core':
         specifier: 6.3.1
         version: 6.3.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
