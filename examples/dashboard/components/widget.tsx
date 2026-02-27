@@ -109,9 +109,13 @@ export function Widget({
                 spec: completedSpec,
               }),
             });
-            const saved = await res.json();
-            setWidgetId(saved.id);
-            onSaved?.(saved.id);
+            if (res.ok) {
+              const saved = await res.json();
+              if (saved.id) {
+                setWidgetId(saved.id);
+                onSaved?.(saved.id);
+              }
+            }
           }
         } catch (err) {
           console.error("Failed to save widget:", err);

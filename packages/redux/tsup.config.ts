@@ -1,15 +1,15 @@
 import { defineConfig } from "tsup";
 
-export default defineConfig({
+export default defineConfig((options) => ({
   entry: ["src/index.ts"],
   format: ["cjs", "esm"],
-  dts: true,
+  dts: !options.watch,
   sourcemap: true,
-  clean: true,
+  clean: !options.watch,
   external: [
     "@json-render/core",
     "@json-render/core/store-utils",
     "redux",
     "@reduxjs/toolkit",
   ],
-});
+}));

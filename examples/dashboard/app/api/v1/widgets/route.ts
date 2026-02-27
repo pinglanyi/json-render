@@ -19,10 +19,15 @@ export async function POST(req: Request) {
     );
   }
 
-  const widget = await createWidget({
-    prompt: body.prompt,
-    spec: body.spec,
-  });
-
-  return Response.json(widget, { status: 201 });
+  try {
+    const widget = await createWidget({
+      prompt: body.prompt,
+      spec: body.spec,
+    });
+    return Response.json(widget, { status: 201 });
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Failed to save widget";
+    return Response.json({ error: message }, { status: 500 });
+  }
 }
