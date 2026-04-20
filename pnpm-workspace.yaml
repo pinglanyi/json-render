@@ -2,5 +2,6 @@ packages:
   - "apps/*"
   - "examples/*"
   - "examples/stripe-app/*"
+  - "examples/deep_rag/*"
   - "packages/*"
   - "tests/*"
