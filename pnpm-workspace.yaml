@@ -3,5 +3,6 @@ packages:
   - "examples/*"
   - "examples/stripe-app/*"
   - "examples/deep_rag/*"
+  - "examples/deep_rag_deepagents/*"
   - "packages/*"
   - "tests/*"
