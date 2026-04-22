@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev --concurrency 20",
+    "dev": "turbo run dev --concurrency 200",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "type-check": "turbo run check-types",
@@ -37,6 +37,7 @@
     "prettier": "^3.7.4",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "tsup": "^8.5.1",
     "turbo": "^2.7.4",
     "typescript": "5.9.2",
     "vitest": "^4.0.17"

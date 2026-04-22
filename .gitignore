@@ -45,3 +45,9 @@ opensrc/
 examples/stripe-app/*/stripe-app.json
 examples/stripe-app/*/.build
 examples/stripe-app/*/yarn.lock
+
+__pycache__
+.langgraph_api
+.venv
+build
+deep_rag_example.egg-info

@@ -22,7 +22,8 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from agent import create_agent
-
+from dotenv import load_dotenv
+load_dotenv()
 
 # ---------------------------------------------------------------------------
 # App state

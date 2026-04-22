@@ -10,6 +10,8 @@ from typing import Any, Literal
 
 import httpx
 from langchain_core.tools import tool
+from dotenv import load_dotenv
+load_dotenv()
 
 _RAGFLOW_BASE = os.getenv("RAGFLOW_BASE_URL", "http://localhost:9380").rstrip("/")
 _RAGFLOW_KEY = os.getenv("RAGFLOW_API_KEY", "")
